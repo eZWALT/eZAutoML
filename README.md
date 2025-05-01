@@ -1,10 +1,32 @@
+![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)
+![Stars](https://img.shields.io/github/stars/eZWALT/eZAutoML?style=flat)
+![Forks](https://img.shields.io/github/forks/eZWALT/eZAutoML?style=flat)
+![Last Commit](https://img.shields.io/github/last-commit/eZWALT/eZAutoML?style=flat)
+![Commit Activity](https://img.shields.io/github/commit-activity/m/eZWALT/eZAutoML?style=flat)
+![Docs](https://img.shields.io/badge/docs-latest-blue)
+
+<!---
+![Version](https://img.shields.io/github/v/tag/eZWALT/eZAutoML?style=flat)
+![PyPI Downloads](https://img.shields.io/pypi/dm/eZAutoML?style=flat)
+-->
+
 # eZAutoML 
 
 ## Overview
 
+`eZAutoML` is a framework designed to make Automated Machine Learning (AutoML) accessible to everyone. It provides an incredible easy to use interface based on Scikit-Learn API to build modelling pipelines with minimal effort.
+
+The framework is built around a few core concepts:
+
+1. **Optimizers**: Black-box optimization methods for hyperparameters.
+2. **Easy Tabular Pipelines**: Simple domain-specific language to describe pipelines for preprocessing and model training.
+3. **Scheduling**: Work in progress; this feature enables horizontal scalability from a single computer to datacenters by using airflow executors.
+
 ## Installation 
 
-Latest published version can be installed through PyPI using:
+### Package Distribution 
+
+The latest version of `eZAutoML` can be installed via **PyPI** or from source.
 
 ```bash 
 pip install ezautoml
@@ -51,10 +73,129 @@ There are future features that are still a work-in-progress and will be enabled 
 
 ### Python Script
 
+You can also use eZAutoML within Python scripts (though this feature is still being developed). This will allow you to work through Python code or via custom pipelines in the future.
 
-## Features & WIP
-3 core components:
+```python
+???
+```
+
+
+## WIP
+
+## WIP TODO List for eZAutoML
+
+### 1. **Core System Setup**
+- [ ] **Implement Dataset Loading (`datasets.py`)**
+   - Build a utility to load datasets from various formats (CSV, Parquet, etc.).
+   - Implement functionality to split datasets into train and test sets.
+
+- [ ] **Preprocessing (`preprocess.py`)**
+   - Implement basic preprocessing such as:
+     - Feature scaling (StandardScaler)
+     - Label encoding for classification tasks
+     - Handling missing values (if necessary)
+   - **Optional**: Extend to more advanced preprocessing in the future.
+  
+### 2. **Model Implementation**
+- [ ] **Model Definitions (`models.py`)**
+   - Implement a list of models:
+     - SVM, RandomForest, XGBoost, etc.
+     - Ensure models can be easily swapped based on the user's request in CLI (`--models` flag).
+   
+- [ ] **Search Strategy (`search.py`)**
+   - Implement the abstract optimizer class, and separate search strategies such as:
+     - **Random Search**: Use for hyperparameter tuning.
+     - **Grid Search**: For exhaustive search of hyperparameters.
+   - Provide flexibility to add new strategies later.
+
+### 3. **Model Evaluation**
+- [ ] **Evaluator (`evaluation.py`)**
+   - Implement cross-validation to assess model performance.
+   - Support various metrics (accuracy, F1 score, etc.) based on the task (classification/regression).
+
+- [ ] **Leaderboard (`reporting.py`)**
+   - Track and store model performance (accuracy, metrics).
+   - Build a leaderboard that ranks models based on their cross-validation score.
+
+### 4. **Optimization System**
+- [ ] **Abstract Optimizer (`search.py`)**
+   - Implement a base class for optimizers, handling setup and execution of hyperparameter search.
+   - Design the optimizer to integrate with different search strategies (Random Search, Grid Search).
+  
+- [ ] **Random Search Optimizer** 
+   - Implement random hyperparameter search strategy.
+   - Randomly sample hyperparameters from predefined search spaces.
+   - Use the evaluator to assess performance during each trial.
+
+### 5. **History Tracking**
+- [ ] **Build History Logging System (`history.py`)**
+   - Implement a system to store trial results (model parameters, validation scores, etc.).
+   - Provide an easy way to retrieve and analyze previous experiment results.
+  
+### 6. **Reporting and Output**
+- [ ] **Reporting (`reporting.py`)**
+   - Create functionality to log experiment results.
+   - Optionally generate visualization such as bar plots for leaderboard.
+   - Save reports and models to the specified output directory.
+  
+### 7. **CLI Interface (eZAutoML/cli.py)**
+- [ ] **Refine CLI (`cli.py`)**
+   - Add user-friendly descriptions, argument validation, and proper help messages.
+   - Implement user input handling for tasks, models, and search strategies.
+   - Provide version information and CLI help as requested by users.
+   
+- [ ] **CLI Workflow**:
+   - Allow users to define dataset, task, models, and optimization settings directly from the command line.
+   - Provide options for verbosity, output directory, and saving models.
+  
+### 8. **Configuration System**
+- [ ] **Config Management (`config.py`)**
+   - Define default search spaces for hyperparameters.
+   - Allow easy configuration of model hyperparameters and search spaces.
+   - Ensure flexibility for future extension.
+
+### 9. **Testing and Validation**
+- [ ] **Unit Testing**
+   - Write basic unit tests to validate the core functionalities:
+     - Dataset loading
+     - Preprocessing steps
+     - Model training and evaluation
+     - Optimizer logic
+     - Leaderboard reporting
+
+- [ ] **Integration Testing**
+   - Ensure the complete pipeline (from dataset loading to final reporting) works seamlessly together.
+
+### 10. **Finalization and Documentation**
+- [ ] **Documentation**
+   - Update the `README.md` file to include details on installation, usage, and examples.
+   - Add docstrings for all functions and classes to ensure code readability.
+   - Document search strategies, hyperparameter configurations, and any custom optimizers implemented.
+
+### 11. **Future Enhancements**
+- [ ] **Optional Preprocessing Steps**
+   - More advanced preprocessing (feature engineering, imputation, etc.).
+- [ ] **Model Extensions**
+   - Add more models like Neural Networks, LightGBM, etc.
+- [ ] **Hyperparameter Optimization with BayesOpt or Optuna**
+   - Extend Random Search with more advanced optimization methods.
+
+### 12. **Release Plan**
+- [ ] **Release Alpha Version**
+   - Ensure basic functionality works for both classification and regression tasks.
+   - Allow users to run experiments via the CLI.
+  
+- [ ] **Prepare for Beta Testing**
+   - Test the MVP with real datasets and gather feedback.
+   - Refine based on issues and feedback.
+
+
+
 
 ## Contributing
 
+We welcome contributions to eZAutoML! If you'd like to contribute, please fork the repository and submit a pull request with your changes. For detailed information on how to contribute, please refer to our contributing guide.
+
 ## License 
+
+eZAutoML is licensed under the BSD 3-Clause License. See the [LICENSE](./LICENSE) file for more information.

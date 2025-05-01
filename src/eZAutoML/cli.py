@@ -2,6 +2,8 @@
 import argparse
 from loguru import logger 
 
+from eZAutoML.__version__ import __version__
+
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="ezautoml",
@@ -76,7 +78,7 @@ def parse_args():
     parser.add_argument(
         "--version",
         action="version",
-        version="eZAutoML 0.1.0",
+        version=f"eZAutoML {__version__}",
         help="Show the current version"
     )
 
@@ -97,6 +99,6 @@ def run_cli():
     logger.info(f"Output: {args.output}")
     logger.info(f"Save model: {args.save_model}")
     logger.info(f"Verbose: {args.verbose}")
-    
-def main():
+        
+if __name__ == "__main__":
     run_cli()

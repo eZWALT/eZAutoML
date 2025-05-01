@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eZAutoML"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Democratized lightweight and transparent AutoML framework"
 authors = [
     { name="eZWALT", email="waltertv02@gmail.com" }
@@ -19,7 +19,6 @@ dependencies = [
 classifiers = [
   'Intended Audience :: Science/Research',
   'Intended Audience :: Developers',
-  'License :: OSI Approved :: BSD License',
   'Programming Language :: Python',
   'Operating System :: POSIX',
   'Operating System :: Unix',
@@ -30,7 +29,7 @@ classifiers = [
   'Programming Language :: Python :: 3.12',
 
 ]
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
 
 [project.optional-dependencies]
 sklearn = ["scikit-learn", "threadpoolctl"]
@@ -40,7 +39,7 @@ lightgbm = ["lightgbm"]
 path_loaders = ["openpyxl", "pyarrow"]
 
 [project.scripts]
-ezautoml = "eZAutoML.cli:main"
+ezautoml = "eZAutoML.cli:run_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
