@@ -12,6 +12,8 @@
 
 # eZAutoML 
 
+[](./resources/logo_red_transparent.png)
+
 ## Overview
 
 `eZAutoML` is a framework designed to make Automated Machine Learning (AutoML) accessible to everyone. It provides an incredible easy to use interface based on Scikit-Learn API to build modelling pipelines with minimal effort.
