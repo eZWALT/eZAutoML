@@ -48,6 +48,12 @@ def parse_args():
         help="Number of cross-validation folds (if needed)"
     )
     parser.add_argument(
+        "--metrics",
+        type=str,
+        default="accuracy,f1_score",
+        help="Comma-separated list of metrics to use (e.g., accuracy,f1_score for classification or mse,r2 for regression)"
+    )
+    parser.add_argument(
         "--scoring",
         type=str,
         default="accuracy",
@@ -58,11 +64,6 @@ def parse_args():
         type=int,
         default=10,
         help="Maximum number of trials inside an optimization algorithm"
-    )
-    parser.add_argument(
-        "--preprocess",
-        action="store_true",
-        help="Whether to perform minimal preprocessing (scaling, encoding...)"
     )
     parser.add_argument(
         "--output",
@@ -93,11 +94,10 @@ def run_cli():
     logger.info(f"Task: {args.task}")
     logger.info(f"Models: {args.models}")
     logger.info(f"Cross-validation: {args.cv}")
+    logger.info(f"Metrics: {args.metrics}")
     logger.info(f"Scoring: {args.scoring}")
-    logger.info(f"Max trials: {args.max_trials}")
-    logger.info(f"Scaling: {args.scale}")
+    logger.info(f"Max trials: {args.trials}")
     logger.info(f"Output: {args.output}")
-    logger.info(f"Save model: {args.save_model}")
     logger.info(f"Verbose: {args.verbose}")
         
 if __name__ == "__main__":
