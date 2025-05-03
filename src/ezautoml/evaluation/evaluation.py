@@ -1,9 +1,9 @@
 from typing import Dict
 from dataclasses import dataclass, field
-from eZAutoML.evaluation.metric import Metric, MetricSet
+from ezautoml.evaluation.metric import Metric, MetricSet
 
 # ===----------------------------------------------------------------------===#
-# Evaluation                                                                 #
+# Evaluation                                                                  #
 #                                                                             #
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
@@ -42,6 +42,11 @@ class Evaluation:
     def get_results(self) -> Dict[str, float]:
         """Return the current evaluation results."""
         return self.results
+
+    def __str__(self) -> str:
+        if not self.results:
+            return "No results"
+        return ", ".join(f"{k}: {v:.4f}" for k, v in self.results.items())
 
 
 

@@ -2,7 +2,7 @@
 import argparse
 from loguru import logger 
 
-from eZAutoML.__version__ import __version__
+from ezautoml.__version__ import __version__
 
 def parse_args():
     parser = argparse.ArgumentParser(

@@ -12,7 +12,12 @@
 
 # eZAutoML 
 
-[](./resources/logo_red_transparent.png)
+<!---
+![](./resources/logo_red_transparent.png)
+-->
+<p align="center">
+  <img src="./resources/logo_white.jpeg" alt="eZAutoML Logo" width="300"/>
+</p>
 
 ## Overview
 
@@ -111,7 +116,7 @@ You can also use eZAutoML within Python scripts (though this feature is still be
    - Provide flexibility to add new strategies later.
 
 ### 3. **Model Evaluation**
-- [ ] **Evaluator (`evaluation.py`)**
+- [x] **Evaluator (`evaluation.py`)**
    - Implement cross-validation to assess model performance.
    - Support various metrics (accuracy, F1 score, etc.) based on the task (classification/regression).
 
@@ -140,56 +145,12 @@ You can also use eZAutoML within Python scripts (though this feature is still be
    - Optionally generate visualization such as bar plots for leaderboard.
    - Save reports and models to the specified output directory.
   
-### 7. **CLI Interface (eZAutoML/cli.py)**
-- [ ] **Refine CLI (`cli.py`)**
-   - Add user-friendly descriptions, argument validation, and proper help messages.
-   - Implement user input handling for tasks, models, and search strategies.
-   - Provide version information and CLI help as requested by users.
-   
-- [ ] **CLI Workflow**:
-   - Allow users to define dataset, task, models, and optimization settings directly from the command line.
-   - Provide options for verbosity, output directory, and saving models.
-  
-### 8. **Configuration System**
+### 7. **Configuration System**
 - [ ] **Config Management (`config.py`)**
    - Define default search spaces for hyperparameters.
    - Allow easy configuration of model hyperparameters and search spaces.
    - Ensure flexibility for future extension.
 
-### 9. **Testing and Validation**
-- [ ] **Unit Testing**
-   - Write basic unit tests to validate the core functionalities:
-     - Dataset loading
-     - Preprocessing steps
-     - Model training and evaluation
-     - Optimizer logic
-     - Leaderboard reporting
-
-- [ ] **Integration Testing**
-   - Ensure the complete pipeline (from dataset loading to final reporting) works seamlessly together.
-
-### 10. **Finalization and Documentation**
-- [ ] **Documentation**
-   - Update the `README.md` file to include details on installation, usage, and examples.
-   - Add docstrings for all functions and classes to ensure code readability.
-   - Document search strategies, hyperparameter configurations, and any custom optimizers implemented.
-
-### 11. **Future Enhancements**
-- [ ] **Optional Preprocessing Steps**
-   - More advanced preprocessing (feature engineering, imputation, etc.).
-- [ ] **Model Extensions**
-   - Add more models like Neural Networks, LightGBM, etc.
-- [ ] **Hyperparameter Optimization with BayesOpt or Optuna**
-   - Extend Random Search with more advanced optimization methods.
-
-### 12. **Release Plan**
-- [ ] **Release Alpha Version**
-   - Ensure basic functionality works for both classification and regression tasks.
-   - Allow users to run experiments via the CLI.
-  
-- [ ] **Prepare for Beta Testing**
-   - Test the MVP with real datasets and gather feedback.
-   - Refine based on issues and feedback.
 
 
 

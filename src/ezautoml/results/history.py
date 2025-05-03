@@ -1,5 +1,5 @@
 from typing import List, Optional
-from eZAutoML.results.trial import Trial
+from ezautoml.results.trial import Trial
 
 
 class History:

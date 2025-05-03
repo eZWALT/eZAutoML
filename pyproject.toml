@@ -39,7 +39,7 @@ lightgbm = ["lightgbm"]
 path_loaders = ["openpyxl", "pyarrow"]
 
 [project.scripts]
-ezautoml = "eZAutoML.cli:run_cli"
+ezautoml = "ezautoml.cli:run_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
