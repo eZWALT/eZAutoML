@@ -4,8 +4,9 @@
 # Search Space                                                                #
 #                                                                             #
 # Object that carries the whole search space composed of:                     #
-# 1. Model
-# 2. 
+# 1. Model                                                                    #
+# 2.                                                                          #
+# 3.                                                                          #
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
 
@@ -23,15 +24,17 @@ class SearchSpace:
         models: List[Component],
         data_processors: List[Component],
         feature_processors: List[Component],
+        task: TaskType,
     ):
         self.models = models
         self.data_processors = data_processors
         self.feature_processors = feature_processors
+        self.task = task
 
-    def sample(self, task: TaskType) -> SearchPoint:
-        model = random.choice([m for m in self.models if m.is_compatible(task)])
-        data_proc = random.choice([d for d in self.data_processors if d.is_compatible(task)])
-        feat_proc = random.choice([f for f in self.feature_processors if f.is_compatible(task)])
+    def sample(self) -> SearchPoint:
+        model = random.choice([m for m in self.models if m.is_compatible(self.task)])
+        data_proc = random.choice([d for d in self.data_processors if d.is_compatible(self.task)])
+        feat_proc = random.choice([f for f in self.feature_processors if f.is_compatible(self.task)])
 
         return SearchPoint(
             model=model,
@@ -47,6 +50,7 @@ class SearchSpace:
             "models": [m.to_dict() for m in self.models],
             "data_processors": [d.to_dict() for d in self.data_processors],
             "feature_processors": [f.to_dict() for f in self.feature_processors],
+            "task": self.task.value
         }
         with open(path, "w") as f:
             yaml.dump(full_dict, f)
@@ -59,32 +63,43 @@ class SearchSpace:
         models = [Component.from_dict(d) for d in data["models"]]
         data_procs = [Component.from_dict(d) for d in data["data_processors"]]
         feat_procs = [Component.from_dict(d) for d in data["feature_processors"]]
+        task = TaskType[data["task"].upper()]  # Convert string back to TaskType
 
-        return SearchSpace(models, data_procs, feat_procs)
+        return SearchSpace(models, data_procs, feat_procs, task)
     
 
-# Main testing script
+
 if __name__ == "__main__":
+    from ezautoml.space import Component
+    from ezautoml.space.search_space import SearchSpace
+    from ezautoml.evaluation.task import TaskType
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA, FastICA
+    # Define Components with appropriate constructors and task types
     models = [
-        Component("rf", [TaskType.CLASSIFICATION, TaskType.REGRESSION]),
-        Component("xgb", [TaskType.CLASSIFICATION]),
-        Component("logreg", [TaskType.CLASSIFICATION]),
+        Component("rf", RandomForestClassifier, task=TaskType.BOTH),  # Example: RandomForest is compatible with both
+        Component("logreg", LogisticRegression, task=TaskType.CLASSIFICATION),
     ]
+    
     data_processors = [
-        Component("imputation", [TaskType.CLASSIFICATION, TaskType.REGRESSION]),
-        Component("scaling", [TaskType.CLASSIFICATION]),
+        Component("imputation", SimpleImputer, task=TaskType.BOTH),  # SimpleImputer can be used for both tasks
+        Component("scaling", StandardScaler, task=TaskType.CLASSIFICATION),
     ]
+    
     feature_processors = [
-        Component("pca", [TaskType.CLASSIFICATION, TaskType.REGRESSION]),
-        Component("ica", [TaskType.CLASSIFICATION]),
+        Component("pca", PCA, task=TaskType.BOTH),
+        Component("ica", FastICA, task=TaskType.CLASSIFICATION),
     ]
 
     # Create a SearchSpace instance
-    search_space = SearchSpace(models, data_processors, feature_processors)
+    task_type = TaskType.CLASSIFICATION  # Change to REGRESSION for regression testing
+    search_space = SearchSpace(models, data_processors, feature_processors, task_type)
 
     # Sample a SearchPoint
-    task_type = TaskType.CLASSIFICATION  # Change to REGRESSION for regression testing
-    search_point = search_space.sample(task_type)
+    search_point = search_space.sample()
     print(f"Sampled SearchPoint for task '{task_type.value}':")
     print(search_point)
 
@@ -99,6 +114,6 @@ if __name__ == "__main__":
     print(loaded_search_space)
 
     # Sample a new SearchPoint after loading from YAML
-    new_search_point = loaded_search_space.sample(task_type)
+    new_search_point = loaded_search_space.sample()
     print(f"Sampled SearchPoint from loaded SearchSpace for task '{task_type.value}':")
     print(new_search_point)

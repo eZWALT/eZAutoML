@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable, Optional, Dict
+from typing import Callable, Optional, Dict, Any
 from enum import Enum
 
 
@@ -17,17 +17,17 @@ class Comparison(str, Enum):
 
 @dataclass(frozen=True)
 class Metric:
-    """Represents an objective metric with direction and optional bounds."""
     name: str
     fn: Optional[Callable[..., float]] = field(default=None, compare=False)
     minimize: bool = True
     bounds: tuple[float, float] | None = None
+    default_kwargs: Dict[str, Any] = field(default_factory=dict, compare=False)  # NEW
 
     def evaluate(self, *args, **kwargs) -> float:
-        """Evaluate the metric using the provided arguments."""
         if self.fn is None:
             raise ValueError(f"Metric '{self.name}' has no function attached.")
-        return self.fn(*args, **kwargs)
+        all_kwargs = {**self.default_kwargs, **kwargs}  # Merge default and call-time kwargs
+        return self.fn(*args, **all_kwargs)
 
     def is_improvement(self, current: float, challenger: float) -> Comparison:
         """Compares the current value with the challenger value."""
@@ -76,25 +76,30 @@ class MetricSet:
         return {k: v.worst for k, v in self.metrics.items()}
 
 
-# Test features
+
+
 if __name__ == "__main__":
+    # Test features
     from sklearn.metrics import accuracy_score, mean_squared_error, f1_score
     import numpy as np
 
-
-    metrics = {
+    metrics = MetricSet({
         "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
         "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
-        "f1_score": Metric(name="f1_score", fn=f1_score, minimize=False)
-    }
+        "f1_score": Metric(name="f1_score", fn=lambda y_true, y_pred: f1_score(y_true, y_pred, average='binary'), minimize=False)
+    })
 
     # True and predicted values
     y_true = np.array([1, 0, 1, 1, 0])
     y_pred_good = np.array([1, 0, 1, 1, 0])
     y_pred_bad = np.array([0, 0, 0, 0, 0])
 
-    # Evaluate and compare metrics in a compact loop
-    for metric_name, metric in metrics.items():
+    # Evaluate and compare metrics
+    for name, metric in metrics.items():
         score_good = metric.evaluate(y_true, y_pred_good)
         score_bad = metric.evaluate(y_true, y_pred_bad)
-        print(f"{metric_name}: Good = {score_good}, Bad = {score_bad}, Improvement = {metric.is_improvement(score_good, score_bad).value}")
+        improvement = metric.is_improvement(score_bad, score_good)
+        print(f"{name}:")
+        print(f"  Good Score = {score_good:.4f}")
+        print(f"  Bad Score  = {score_bad:.4f}")
+        print(f"  Improvement = {improvement.value}")

@@ -1,6 +1,6 @@
 
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 import yaml
 from ezautoml.space import Component
 

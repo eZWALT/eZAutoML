@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 import random
-import logging
+
+from loguru import logger
 
 from ezautoml.space.search_space import SearchSpace
 from ezautoml.space.search_point import SearchPoint
-from ezautoml.evaluation.metric import MetricSet, Metric
-
-logger = logging.getLogger(__name__)
+from ezautoml.evaluation.metric import MetricSet
 
 
 class Optimizer(ABC):
@@ -29,6 +28,7 @@ class Optimizer(ABC):
         """Update the optimizer with the result of a trial."""
         pass
 
+    # TODO: Trial
     @abstractmethod
     def ask(self, n: int = 1) -> Union[SearchPoint, List[SearchPoint]]:
         """Ask for one or more candidate configurations to evaluate."""

@@ -1,0 +1,28 @@
+data_processors:
+- constructor: SimpleImputer
+  hyperparams: []
+  name: imputation
+  task: both
+- constructor: StandardScaler
+  hyperparams: []
+  name: scaling
+  task: classification
+feature_processors:
+- constructor: PCA
+  hyperparams: []
+  name: pca
+  task: both
+- constructor: FastICA
+  hyperparams: []
+  name: ica
+  task: classification
+models:
+- constructor: RandomForestClassifier
+  hyperparams: []
+  name: rf
+  task: both
+- constructor: LogisticRegression
+  hyperparams: []
+  name: logreg
+  task: classification
+task: classification

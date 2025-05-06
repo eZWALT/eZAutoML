@@ -1,7 +1,12 @@
 from abc import ABC
+from typing import Callable
 from ezautoml.evaluation.task import TaskType
 from ezautoml.space.space import * 
 from ezautoml.space.hyperparam import Hyperparam
+
+
+# TODO: perform some validation of allowed models, preprocessors...
+
 
 # ===----------------------------------------------------------------------===#
 # Abstract Component                                                          #
@@ -13,7 +18,7 @@ from ezautoml.space.hyperparam import Hyperparam
 # ===----------------------------------------------------------------------===#
 
 class Component:
-    def __init__(self, name: str, constructor, hyperparams=None, task: TaskType = TaskType.BOTH):
+    def __init__(self, name: str, constructor: Callable, hyperparams=None, task: TaskType = TaskType.BOTH):
         """
         Initializes a Component.
         
@@ -53,6 +58,43 @@ class Component:
         """
         # If the component is marked as compatible with both task types, it's always compatible
         return self.task == TaskType.BOTH or self.task == task
+    
+    def to_dict(self) -> dict:
+        """
+        Serializes the Component instance to a dictionary.
+
+        :return: A dictionary representation of the Component.
+        """
+        # Serialize hyperparameters as a list of dictionaries
+        hyperparams_dict = [hp.to_dict() for hp in self.hyperparams]
+        return {
+            "name": self.name,
+            "constructor": self.constructor.__name__,  # Store the name of the constructor function
+            "hyperparams": hyperparams_dict,
+            "task": self.task.value  # Store the task type as a string value
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """
+        Deserializes a dictionary into a Component instance.
+
+        :param data: A dictionary containing the Component's serialized information.
+        :return: An instance of the Component class.
+        """
+        # Get the constructor function based on the constructor name (you'll need to ensure you have access to the constructor)
+        constructor = globals().get(data["constructor"])  # You might need to handle it if constructor is more complex.
+        
+        # Deserialize hyperparameters
+        hyperparams = [Hyperparam.from_dict(hp_data) for hp_data in data["hyperparams"]]
+
+        # Create and return the Component instance
+        return cls(
+            name=data["name"],
+            constructor=constructor,
+            hyperparams=hyperparams,
+            task=TaskType(data["task"])  # Convert the task string back to the enum
+        )
 
 
 if __name__ == "__main__":
