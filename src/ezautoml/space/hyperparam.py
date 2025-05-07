@@ -38,3 +38,6 @@ class Hyperparam:
         elif space_type == 'Categorical':
             return cls(data['name'], Categorical(space_data['categories']))
         return None
+    
+    def __str__(self):
+        return f"Hyperparam(name={self.name}, space={self.space})"

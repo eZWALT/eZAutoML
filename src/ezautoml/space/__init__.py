@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Callable
+from typing import Callable, List
 from ezautoml.evaluation.task import TaskType
 from ezautoml.space.space import * 
 from ezautoml.space.hyperparam import Hyperparam
@@ -17,83 +17,65 @@ from ezautoml.space.hyperparam import Hyperparam
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
 
+# dummy NoOp constructor (Just for testing this shouldn't be used regularly)
+# alternatively empty lambda can be used
+def NoOp():
+    return None
+
 class Component:
-    def __init__(self, name: str, constructor: Callable, hyperparams=None, task: TaskType = TaskType.BOTH):
+    def __init__(
+        self,
+        name: str,
+        constructor: Callable,
+        hyperparams: List[Hyperparam] = None,
+        task: TaskType = TaskType.BOTH,
+    ):
         """
-        Initializes a Component.
+        Represents a model or processor with its constructor, hyperparameters, and task compatibility.
+        """
+        if not callable(constructor):
+            raise ValueError(f"Constructor must be callable, got {constructor}")
         
-        :param name: Name of the component (e.g., 'RandomForest', 'PCA', etc.).
-        :param constructor: A function or callable used to instantiate the model or processor (e.g., RandomForestClassifier, PCA).
-        :param hyperparams: A list of Hyperparam objects associated with this component.
-        :param task: The task type for which this component is compatible, defaults to `TaskType.BOTH`.
-        """
         self.name = name
         self.constructor = constructor
         self.hyperparams = hyperparams or []
-        self.task = task  # Can be TaskType.CLASSIFICATION, TaskType.REGRESSION, or TaskType.BOTH for compatibility with both
+        self.task = task
 
     def sample_params(self) -> dict:
-        """
-        Samples hyperparameters for this component based on its space.
-
-        :return: A dictionary of sampled hyperparameters for the component.
-        """
         return {hp.name: hp.sample() for hp in self.hyperparams}
 
     def instantiate(self, params: dict):
-        """
-        Instantiates the component (e.g., creates a model or processor) with the provided hyperparameters.
-
-        :param params: A dictionary of hyperparameters to set when instantiating the component.
-        :return: The instantiated model or processor.
-        """
         return self.constructor(**params)
 
     def is_compatible(self, task: TaskType) -> bool:
-        """
-        Checks whether this component is compatible with the given task type.
-
-        :param task: The task type to check compatibility against (e.g., CLASSIFICATION, REGRESSION).
-        :return: True if the component is compatible with the task type, False otherwise.
-        """
-        # If the component is marked as compatible with both task types, it's always compatible
         return self.task == TaskType.BOTH or self.task == task
-    
-    def to_dict(self) -> dict:
-        """
-        Serializes the Component instance to a dictionary.
 
-        :return: A dictionary representation of the Component.
-        """
-        # Serialize hyperparameters as a list of dictionaries
-        hyperparams_dict = [hp.to_dict() for hp in self.hyperparams]
+    def to_dict(self) -> dict:
         return {
             "name": self.name,
-            "constructor": self.constructor.__name__,  # Store the name of the constructor function
-            "hyperparams": hyperparams_dict,
-            "task": self.task.value  # Store the task type as a string value
+            "constructor": self.constructor.__name__,
+            "hyperparams": [hp.to_dict() for hp in self.hyperparams],
+            "task": self.task.value,
         }
 
     @classmethod
     def from_dict(cls, data: dict):
-        """
-        Deserializes a dictionary into a Component instance.
-
-        :param data: A dictionary containing the Component's serialized information.
-        :return: An instance of the Component class.
-        """
-        # Get the constructor function based on the constructor name (you'll need to ensure you have access to the constructor)
-        constructor = globals().get(data["constructor"])  # You might need to handle it if constructor is more complex.
+        constructor_name = data["constructor"]
+        constructor = globals().get(constructor_name)
+        if constructor is None:
+            raise ValueError(f"Constructor '{constructor_name}' not found in global scope")
         
-        # Deserialize hyperparameters
-        hyperparams = [Hyperparam.from_dict(hp_data) for hp_data in data["hyperparams"]]
+        hyperparams = [Hyperparam.from_dict(hp) for hp in data.get("hyperparams", [])]
+        task = TaskType(data["task"])
+        return cls(data["name"], constructor, hyperparams, task)
 
-        # Create and return the Component instance
-        return cls(
-            name=data["name"],
-            constructor=constructor,
-            hyperparams=hyperparams,
-            task=TaskType(data["task"])  # Convert the task string back to the enum
+    def __str__(self):
+        hyperparam_strs = [str(hp) for hp in self.hyperparams]
+        return (
+            f"Component(name='{self.name}', "
+            f"task='{self.task.name}', "
+            f"constructor='{self.constructor.__name__}', "
+            f"hyperparams=[{', '.join(hyperparam_strs)}])"
         )
 
 
@@ -148,3 +130,5 @@ if __name__ == "__main__":
 
     print("Sampled Search Configuration:")
     print(config)
+    print("\n\n The Component str is:")
+    print(scaler_component)

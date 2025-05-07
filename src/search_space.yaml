@@ -1,11 +1,11 @@
 data_processors:
 - constructor: SimpleImputer
   hyperparams: []
-  name: imputation
+  name: imputer
   task: both
 - constructor: StandardScaler
   hyperparams: []
-  name: scaling
+  name: scaler
   task: classification
 feature_processors:
 - constructor: PCA

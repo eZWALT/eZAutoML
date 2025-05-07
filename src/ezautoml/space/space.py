@@ -17,32 +17,50 @@ class Space:
     def sample(self):
         """Sample a value from the space."""
         pass
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
 
 class Categorical(Space):
     def __init__(self, categories):
+        assert isinstance(categories, list) and len(categories) > 0, "Must provide a non-empty list of categories."
         self.categories = categories
 
     def contains(self, value):
         return value in self.categories
-    
+
     def sample(self):
         return random.choice(self.categories)
 
+    def __str__(self):
+        return f"Categorical({self.categories})"
+
 class Integer(Space):
     def __init__(self, low, high):
+        assert isinstance(low, int) and isinstance(high, int), "Bounds must be integers."
+        assert low <= high, f"Invalid Integer bounds: low={low}, high={high}"
         self.low = low
         self.high = high
 
     def sample(self):
         return random.randint(self.low, self.high)
 
+    def __str__(self):
+        return f"Integer({self.low}, {self.high})"
+
 class Real(Space):
     def __init__(self, low, high):
+        assert isinstance(low, (int, float)) and isinstance(high, (int, float)), "Bounds must be numeric."
+        assert low <= high, f"Invalid Real bounds: low={low}, high={high}"
         self.low = low
         self.high = high
 
     def sample(self):
         return random.uniform(self.low, self.high)
+
+    def __str__(self):
+        return f"Real({self.low}, {self.high})"
+
 
 
 
