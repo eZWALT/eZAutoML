@@ -2,7 +2,7 @@
 
 from typing import Dict, Any, List, Optional
 import yaml
-from ezautoml.space import Component
+from ezautoml.space.component import Component
 
 # ===----------------------------------------------------------------------===#
 # Search Point (Slice of Seach Space)                                         #

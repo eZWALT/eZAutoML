@@ -15,8 +15,8 @@ import random
 import yaml
 
 from ezautoml.evaluation.task import TaskType
-from ezautoml.space import Component
 from ezautoml.space.search_point import SearchPoint
+from ezautoml.space.component import Component
 
 
 class SearchSpace:
@@ -127,12 +127,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA, FastICA
 
 if __name__ == "__main__":
-
-
-    from ezautoml.space import Component
-    from ezautoml.space.search_space import SearchSpace
-    from ezautoml.evaluation.task import TaskType
-
     # Define components
     models = [
         Component(name="rf", constructor=RandomForestClassifier, task=TaskType.BOTH),
@@ -171,6 +165,7 @@ if __name__ == "__main__":
     search_space.to_yaml(yaml_path)
     print(f"\n📦 Serialized SearchSpace to '{yaml_path}'")
 
+    print(globals())
     loaded_space = SearchSpace.from_yaml(yaml_path)
     print("\n📤 Loaded SearchSpace:")
     print(loaded_space)

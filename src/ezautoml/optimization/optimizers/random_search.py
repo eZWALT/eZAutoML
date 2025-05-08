@@ -22,8 +22,9 @@ class RandomSearchOptimizer(Optimizer):
 
 if __name__ == "__main__":
     from sklearn.ensemble import RandomForestClassifier
+    from sklearn.tree import DecisionTreeClassifier
     from sklearn.metrics import accuracy_score
-    from ezautoml.space import Component
+    from ezautoml.space.component import Component, Tag
     from ezautoml.space.hyperparam import Hyperparam, Integer
     from ezautoml.space.search_space import SearchSpace
     from ezautoml.evaluation.metric import Metric, MetricSet
@@ -37,15 +38,27 @@ if __name__ == "__main__":
         Hyperparam("n_estimators", Integer(10, 100)),
         Hyperparam("max_depth", Integer(3, 15)),
     ]
+    dt_params = [
+        Hyperparam("max_features", Integer(10, 100)),
+        Hyperparam("max_depth", Integer(1, 100)),
+    ]
 
     rf_component = Component(
         name="RandomForest",
+        tag=Tag.MODEL_SELECTION,
         constructor=RandomForestClassifier,
         hyperparams=rf_params,
     )
+    dt_component = Component(
+        name="DecisionTree",
+        tag=Tag.MODEL_SELECTION,
+        constructor=DecisionTreeClassifier,
+        hyperparams=dt_params,
+    )
+    
 
     search_space = SearchSpace(
-        models=[rf_component],
+        models=[rf_component,dt_component],
         data_processors=[],
         feature_processors=[],
         task=TaskType.CLASSIFICATION
