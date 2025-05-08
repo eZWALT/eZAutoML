@@ -78,10 +78,39 @@ from lightgbm import LGBMClassifier, LGBMRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
 
 
-# dummy NoOp constructor (Just for testing this shouldn't be used regularly)
-# alternatively empty lambda can be used
-def NoOp():
-    return None
+# NoFeatureEngineering: Does nothing when called, just returns the input
+class NoFeatureEngineering:
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        return X
+
+
+# NoFeatureProcessing: Does nothing when called, just returns the input
+class NoFeatureProcessing:
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return X
+
+# NoDataProcessing: Does nothing, just returns the input
+class NoDataProcessing:
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        return X
+
+# NoOptimizationAlgSelection: A placeholder class to simulate no optimization algorithm selection
+class NoOptimizationAlgSelection:
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        return X
+
 
 constructor_registry = ConstructorRegistry()
 
@@ -125,16 +154,25 @@ for constructor in [
     CatBoostRegressor,
 
     # -----------------------------------------------------
-    # 3. Clustering & Dimensionality Reduction (Top 5)
+    # 3. Feature processing components (Top 5)
     # -----------------------------------------------------
     KMeans,
     PCA,
 
     # -----------------------------------------------------
-    # 4. Preprocessing Models (Top 5)
+    # 4. Data processing components (Top 5)
     # -----------------------------------------------------
     StandardScaler,
     MinMaxScaler,
     RobustScaler,
+    
+    # -----------------------------------------------------
+    # 5. Null components
+    # -----------------------------------------------------
+    NoFeatureEngineering,
+    NoDataProcessing, 
+    NoFeatureProcessing,
+    NoOptimizationAlgSelection
+    
 ]:
     constructor_registry.register(constructor)

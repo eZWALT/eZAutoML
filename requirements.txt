@@ -2,3 +2,8 @@ loguru
 pandas 
 numpy
 argparse
+scikit-learn
+xgboost 
+catboost 
+lightgbm
+loguru

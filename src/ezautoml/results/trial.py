@@ -1,79 +1,59 @@
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, Optional
-import uuid
-from enum import Enum
+from dataclasses import dataclass, asdict
+from typing import Dict, Any
+import time
 from rich.panel import Panel
 from rich.table import Table
-import time
-
-from ezautoml.evaluation.evaluation import Evaluation
-
-# ===----------------------------------------------------------------------===#
-# Optimization Trial                                                          #
-#                                                                             #
-# This class describes all information related to an attempt of optimization  #
-# performed by an optimizer. How long it lasted, its evaluation... and can be #
-# pretty printed into terminal by using rich library                          #
-# Author: Walter J.T.V                                                        #
-# ===----------------------------------------------------------------------===#
-
-class TrialStatus(Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    SUCCESS = "success"
-    FAILED = "failed"
+from rich.console import Console
 
 
+# TODO add also feature_processors, data_processors,
+# feature_engineering, opt_algorithm_selection
+@dataclass
 class Trial:
-    def __init__(self, 
-                 seed: int, 
-                 optimizer: str, 
-                 evaluation: Dict[str, float], 
-                 duration: float):
-        # Essential attributes
-        self.seed = seed
-        self.optimizer = optimizer
-        self.evaluation = evaluation
-        self.duration = duration  # Duration is passed externally (end_time - start_time)
+    seed: int
+    model_name: str
+    optimizer_name: str
+    evaluation: Dict[str, float]
+    duration: float  # in seconds
 
-    @classmethod
-    def create(cls, seed: int, optimizer: str) -> "Trial":
-        return cls(seed=seed, optimizer=optimizer, evaluation={}, duration=0.0)
-
-    def print_summary(self, start_time: float, end_time: float, evaluation_results: Dict[str, float]) -> None:
-        """Pretty print the trial details using the rich library."""
+    def print_summary(self) -> None:
+        """Pretty print the trial using rich."""
         table = Table.grid(padding=(0, 1))
         table.add_row("Seed", str(self.seed))
-        table.add_row("Optimizer", self.optimizer)
-        table.add_row("Start Time", time.ctime(start_time))
-        table.add_row("End Time", time.ctime(end_time))
-        table.add_row("Evaluation", str(evaluation_results))
-        table.add_row("Duration", f"{self.duration:.4f} seconds")
+        table.add_row("Model", self.model_name)
+        table.add_row("Optimizer", self.optimizer_name)
+        table.add_row("Evaluation", ", ".join(f"{k}={v:.3f}" for k, v in self.evaluation.items()))
+        table.add_row("Duration", f"{self.duration:.2f} seconds")
 
-        panel = Panel(table, title=f"Trial Summary ({self.seed})", title_align="left")
-        
-        # Print the panel to console
-        from rich.console import Console
-        console = Console()
-        console.print(panel)
+        panel = Panel(table, title=f"Trial Summary (Seed: {self.seed})", title_align="left")
+        Console().print(panel)
 
-    def to_dict(self, start_time: float, end_time: float, evaluation_results: Dict[str, float]) -> Dict[str, Any]:
-        """Return the trial as a dictionary (useful for saving the trial details)."""
-        return {
-            "seed": self.seed,
-            "optimizer": self.optimizer,
-            "evaluation": evaluation_results,
-            "start_time": start_time,
-            "end_time": end_time,
-            "duration": self.duration,
-        }
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the trial to a dictionary."""
+        return asdict(self)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Trial":
-        """Create a trial from a dictionary (useful for loading saved trials)."""
-        return cls(
-            seed=data["seed"],
-            optimizer=data["optimizer"],
-            evaluation=data["evaluation"],
-            duration=data["duration"]
-        )
+        """Create a Trial instance from a dictionary."""
+        return cls(**data)
+
+    def __str__(self) -> str:
+        """Compact summary of the trial."""
+        metrics = ", ".join(f"{k}={v:.3f}" for k, v in self.evaluation.items())
+        return f"[Trial seed={self.seed}, model={self.model_name}, optimizer={self.optimizer_name}, {metrics}, duration={self.duration:.2f}s]"
+
+    def __repr__(self) -> str:
+        """Diagnostic representation."""
+        return self.__str__()
+
+if __name__ == "__main__":
+    trial = Trial(
+        seed=42,
+        model_name="ResNet50",
+        optimizer_name="Adam",
+        evaluation={"accuracy": 0.912, "f1_score": 0.880},
+        duration=420.3
+    )
+
+    print(str(trial))      # Pretty summary
+    trial.print_summary()  # Rich terminal panel
