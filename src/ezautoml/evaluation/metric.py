@@ -56,6 +56,7 @@ class Metric:
 class MetricSet:
     """A collection of multiple metrics, organized as a set."""
     metrics: Dict[str, Metric] = field(default_factory=dict)
+    primary_metric_name: str = "accuracy" 
 
     def __getitem__(self, key: str) -> Metric:
         return self.metrics[key]
@@ -75,6 +76,10 @@ class MetricSet:
     def get_worst_values(self) -> Dict[str, float]:
         return {k: v.worst for k, v in self.metrics.items()}
 
+    @property
+    def primary(self) -> Metric:
+        print(self.metrics)
+        return self.metrics[self.primary_metric_name] 
 
 
 
@@ -87,7 +92,8 @@ if __name__ == "__main__":
         "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
         "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
         "f1_score": Metric(name="f1_score", fn=lambda y_true, y_pred: f1_score(y_true, y_pred, average='binary'), minimize=False)
-    })
+    },
+    primary_metric_name="accuracy")
 
     # True and predicted values
     y_true = np.array([1, 0, 1, 1, 0])

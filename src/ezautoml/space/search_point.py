@@ -3,6 +3,8 @@
 from typing import Dict, Any, List, Optional
 import yaml
 from ezautoml.space.component import Component
+from ezautoml.results.trial import Trial  
+
 
 # ===----------------------------------------------------------------------===#
 # Search Point (Slice of Seach Space)                                         #
@@ -30,6 +32,9 @@ class SearchPoint:
 
         self.feature_processors = feature_processors or []
         self.feature_params_list = feature_params_list or [{} for _ in self.feature_processors]
+
+        # stores the evaluation result
+        self.result: Optional[Trial] = None  
 
     def instantiate_pipeline(self):
         """
@@ -63,7 +68,10 @@ class SearchPoint:
         }
 
     def to_dict(self) -> Dict[str, Any]:
-        return self.describe()
+        d = self.describe()
+        if self.result:
+            d["result"] = self.result.to_dict()
+        return d
 
     def to_yaml(self, path: str) -> None:
         with open(path, "w") as f:
@@ -86,7 +94,7 @@ class SearchPoint:
         feature_processors = [find_component(fp["name"]) for fp in data.get("feature_processors", [])]
         feature_params_list = [fp["params"] for fp in data.get("feature_processors", [])]
 
-        return SearchPoint(
+        sp = SearchPoint(
             model=model,
             model_params=model_params,
             data_processors=data_processors,
@@ -95,37 +103,47 @@ class SearchPoint:
             feature_params_list=feature_params_list
         )
 
+        if "result" in data:
+            sp.result = Trial.from_dict(data["result"])
+
+        return sp
+
+
     def __str__(self):
         desc = self.describe()
         return yaml.dump(desc, sort_keys=False)
-    
+
 if __name__ == "__main__":
-    # Define hyperparameters
+    import yaml
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA
+
+    from ezautoml.space.search_point import SearchPoint
+    from ezautoml.space.component import Component
     from ezautoml.space.space import Integer, Real
     from ezautoml.space.hyperparam import Hyperparam
-    from ezautoml.space.search_point import SearchPoint
+    from ezautoml.results.trial import Trial  # adjust path if needed
 
-    # Dummy constructors for demonstration
-    class DummyModel:
-        def __init__(self, **kwargs): pass
+    # Define Components using real sklearn classes
+    model = Component(
+        "RandomForestClassifier",
+        RandomForestClassifier,
+        [
+            Hyperparam("n_estimators", Integer(10, 100)),
+            Hyperparam("max_depth", Integer(3, 10)),
+        ]
+    )
 
-    class DummyScaler:
-        def __init__(self, **kwargs): pass
+    scaler = Component("StandardScaler", StandardScaler, [])
 
-    class DummyPCA:
-        def __init__(self, **kwargs): pass
-
-    model_hparams = [
-        Hyperparam("n_estimators", Integer(10, 100)),
-        Hyperparam("max_depth", Integer(3, 10))
-    ]
-    scaler_hparams = []
-    pca_hparams = [Hyperparam("n_components", Real(0.5, 0.99))]
-
-    # Create components
-    model = Component("DummyModel", DummyModel, model_hparams)
-    scaler = Component("StandardScaler", DummyScaler, scaler_hparams)
-    pca = Component("PCA", DummyPCA, pca_hparams)
+    pca = Component(
+        "PCA",
+        PCA,
+        [
+            Hyperparam("n_components", Real(0.5, 0.99)),
+        ]
+    )
 
     # Sample hyperparameters
     model_params = model.sample_params()
@@ -139,9 +157,29 @@ if __name__ == "__main__":
         data_processors=[scaler],
         data_params_list=[scaler_params],
         feature_processors=[pca],
-        feature_params_list=[pca_params]
+        feature_params_list=[pca_params],
     )
 
-    # Output description
-    print("Sampled SearchPoint:")
-    print(point)
+    # Assign a dummy trial result
+    point.result = Trial(
+        seed=123,
+        model_name=model.name,
+        optimizer_name="RandomSearch",
+        evaluation={"accuracy": 0.87, "f1_score": 0.84},
+        duration=12.3
+    )
+
+    # Serialize to YAML
+    yaml_path = "search_point.yaml"
+    point.to_yaml(yaml_path)
+
+    # Deserialize from YAML
+    loaded = SearchPoint.from_yaml(yaml_path, [model, scaler, pca])
+
+    # Print loaded SearchPoint and Trial
+    print("Restored SearchPoint:")
+    print(loaded)
+
+    if loaded.result:
+        print("\nRestored Trial:")
+        print(loaded.result)

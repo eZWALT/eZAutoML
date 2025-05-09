@@ -64,7 +64,7 @@ class Component:
 
         if self.tag == Tag.MODEL_SELECTION:
             required_methods = ["fit", "predict"]  # optionally "predict_proba"
-        elif self.tag in {Tag.DATA_PROCESSING, Tag.FEATURE_PROCESSING, Tag.FEATURE_ENGINEERING}:
+        elif self.tag in [Tag.DATA_PROCESSING, Tag.FEATURE_PROCESSING, Tag.FEATURE_ENGINEERING]:
             required_methods = ["fit", "transform"]
         elif self.tag == Tag.OPTIMIZATION_ALGORITHM_SELECTION:
             required_methods = []

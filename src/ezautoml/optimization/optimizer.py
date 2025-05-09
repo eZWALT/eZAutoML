@@ -1,45 +1,89 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 import random
+import time
 
 from loguru import logger
-
 from ezautoml.space.search_space import SearchSpace
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.evaluation.metric import MetricSet
 
-
 class Optimizer(ABC):
-    """Abstract base optimizer that works with ezautoml's SearchSpace and SearchPoint."""
+    """Abstract base optimizer for CASH: model selection + hyperparameter optimization.
+
+    Manages trial sampling, tracking, and stopping based on trial count or time.
+    """
 
     def __init__(
         self,
         metrics: MetricSet,
         space: SearchSpace,
+        max_trials: int,
+        max_time: int,  # in seconds
         seed: Optional[int] = None,
     ) -> None:
         self.metrics = metrics
         self.space = space
+        self.max_trials = max_trials
+        self.max_time = max_time
         self.seed = seed
         self.rng = random.Random(seed)
 
+        self.trial_count = 0
+        self.trials: List[SearchPoint] = []
+        self.start_time = time.time()
+
     @abstractmethod
     def tell(self, report: SearchPoint) -> None:
-        """Update the optimizer with the result of a trial."""
+        """Update the optimizer with the result of a completed trial."""
         pass
 
-    # TODO: Trial
     @abstractmethod
     def ask(self, n: int = 1) -> Union[SearchPoint, List[SearchPoint]]:
-        """Ask for one or more candidate configurations to evaluate."""
+        """Request one or more new configurations to evaluate."""
         pass
+
+    def get_trials(self) -> List[SearchPoint]:
+        """Return all completed trials."""
+        return self.trials
+
+    def has_reached_max_trials(self) -> bool:
+        return self.trial_count >= self.max_trials
+
+    def has_reached_max_time(self) -> bool:
+        return (time.time() - self.start_time) >= self.max_time
+
+    def stop_optimization(self) -> bool:
+        """Check stopping condition based on trial count or time."""
+        return self.has_reached_max_trials() or self.has_reached_max_time()
+
+    def get_best_trial(self) -> Optional[SearchPoint]:
+        """Return the best trial based on the main metric (first in the set)."""
+        if not self.trials:
+            return None
+
+        main_metric = self.metrics.primary
+        key = main_metric.name
+        reverse = not main_metric.minimize
+
+        return max(
+            self.trials,
+            key=lambda t: t.result.get(key, float("-inf") if reverse else float("inf")),
+        )
 
     @classmethod
     def create(
         cls,
         space: SearchSpace,
         metrics: MetricSet,
+        max_trials: int,
+        max_time: int,
         seed: Optional[int] = None,
     ) -> 'Optimizer':
-        """Factory method to create an instance of the optimizer."""
-        return cls(metrics=metrics, space=space, seed=seed)
+        return cls(
+            metrics=metrics,
+            space=space,
+            max_trials=max_trials,
+            max_time=max_time,
+            seed=seed,
+        )

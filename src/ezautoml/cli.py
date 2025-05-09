@@ -87,18 +87,25 @@ def parse_args():
 
 def run_cli():
     args = parse_args()
-    # Now we should do something with these args 
-    logger.info("Parsed Arguments:")
-    logger.info(f"Dataset: {args.dataset}")
-    logger.info(f"Target: {args.target}")
-    logger.info(f"Task: {args.task}")
-    logger.info(f"Models: {args.models}")
-    logger.info(f"Cross-validation: {args.cv}")
-    logger.info(f"Metrics: {args.metrics}")
-    logger.info(f"Scoring: {args.scoring}")
-    logger.info(f"Max trials: {args.trials}")
-    logger.info(f"Output: {args.output}")
-    logger.info(f"Verbose: {args.verbose}")
+
+    from ezautoml.automl_runner import AutoMLRunner
+    from ezautoml.evaluation.evaluator import Evaluator
+    from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
+    from ezautoml.space.search_space import SearchSpace
+    from loguru import logger
+
+    # TODO THIS IS A PROTOTYPE INTERFACE
+    
+    search_space = SearchSpace.from_file("search_space.yaml")
+    optimizer = RandomSearchOptimizer()
+    evaluator = Evaluator(X_train, y_train, X_test, y_test)
+
+    runner = AutoMLRunner(optimizer=optimizer, evaluator=evaluator)
+    runner.run(n_trials=10)
+
+    best = runner.get_best()
+    print(f"Best trial accuracy: {best.result.get('accuracy')}")
+
         
 if __name__ == "__main__":
     run_cli()
