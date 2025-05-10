@@ -83,10 +83,7 @@ models:
   - name: penalty
     space:
       categories:
-      - l1
       - l2
-      - elasticnet
-      - none
       type: Categorical
   name: LogisticRegression
   tag: model_selection
@@ -178,22 +175,6 @@ models:
   name: GaussianNB
   tag: model_selection
   task: classification
-- constructor: MultinomialNB
-  hyperparams:
-  - name: alpha
-    space:
-      high: 10.0
-      low: 0.001
-      type: Real
-  - name: fit_prior
-    space:
-      categories:
-      - true
-      - false
-      type: Categorical
-  name: MultinomialNB
-  tag: model_selection
-  task: classification
 - constructor: AdaBoostClassifier
   hyperparams:
   - name: n_estimators
@@ -210,7 +191,6 @@ models:
     space:
       categories:
       - SAMME
-      - SAMME.R
       type: Categorical
   name: AdaBoostClassifier
   tag: model_selection
@@ -358,53 +338,6 @@ models:
       low: 0.0
       type: Real
   name: LGBMClassifier
-  tag: model_selection
-  task: classification
-- constructor: CatBoostClassifier
-  hyperparams:
-  - name: iterations
-    space:
-      high: 1000
-      low: 10
-      type: Integer
-  - name: learning_rate
-    space:
-      high: 0.3
-      low: 0.01
-      type: Real
-  - name: depth
-    space:
-      high: 10
-      low: 4
-      type: Integer
-  - name: l2_leaf_reg
-    space:
-      high: 10.0
-      low: 1.0
-      type: Real
-  - name: bagging_temperature
-    space:
-      high: 1.0
-      low: 0.0
-      type: Real
-  - name: border_count
-    space:
-      high: 255
-      low: 32
-      type: Integer
-  - name: random_strength
-    space:
-      high: 1.0
-      low: 0.0
-      type: Real
-  - name: grow_policy
-    space:
-      categories:
-      - SymmetricTree
-      - Depthwise
-      - Lossguide
-      type: Categorical
-  name: CatBoostClassifier
   tag: model_selection
   task: classification
 task: classification

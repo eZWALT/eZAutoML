@@ -123,7 +123,6 @@ class OptunaOptimizer(Optimizer):
 
             # Convert the trial into a full configuration
             config = self.parser.convert_to_search_point(trial)
-            print(config)
 
             # Here, we use the instantiate method on the Component instance, not the model class
             model = config.model.instantiate(config.model_params)

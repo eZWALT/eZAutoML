@@ -100,7 +100,8 @@ class Component:
         hyperparams = [Hyperparam.from_dict(hp) for hp in data.get("hyperparams", [])]
         task = TaskType(data["task"])
         tag = Tag(data.get("tag", Tag.MODEL_SELECTION.value))
-        return cls(data["name"], constructor, hyperparams, task, tag)
+        sus = cls(data["name"], constructor=constructor,tag=tag, hyperparams=hyperparams, task=task)
+        return sus
 
     def __str__(self):
         hyperparam_strs = [str(hp) for hp in self.hyperparams]

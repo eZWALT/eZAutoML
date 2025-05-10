@@ -6,21 +6,24 @@ from ezautoml.space.hyperparam import Hyperparam
 from ezautoml.space.space import Integer, Real, Categorical
 from ezautoml.registry import constructor_registry
 
+
+serialize = True
+
 # -----------------------------
 # Define models by task
 # -----------------------------
 classification_model_names = [
     "RandomForestClassifier", "GradientBoostingClassifier", "LogisticRegression", "SVC",
-    "KNeighborsClassifier", "DecisionTreeClassifier", "GaussianNB", "MultinomialNB",
+    "KNeighborsClassifier", "DecisionTreeClassifier", "GaussianNB",
     "AdaBoostClassifier", "BaggingClassifier", "ExtraTreesClassifier",
-    "XGBClassifier", "LGBMClassifier", "CatBoostClassifier"
+    "XGBClassifier", "LGBMClassifier",
 ]
 
 regression_model_names = [
     "RandomForestRegressor", "GradientBoostingRegressor", "Ridge", "Lasso",
     "ElasticNet", "LinearRegression", "SVR", "KNeighborsRegressor",
     "DecisionTreeRegressor", "XGBRegressor", "AdaBoostRegressor",
-    "BaggingRegressor", "ExtraTreesRegressor", "LGBMRegressor", "CatBoostRegressor"
+    "BaggingRegressor", "ExtraTreesRegressor", "LGBMRegressor",
 ]
 
 # -----------------------------
@@ -71,7 +74,7 @@ def get_registered_components(model_names, task):
             hyperparams = [
                 Hyperparam("C", Real(1e-4, 100.0)),
                 Hyperparam("max_iter", Integer(100, 1000)),
-                Hyperparam("penalty", Categorical(["l1", "l2", "elasticnet", "none"]))
+                Hyperparam("penalty", Categorical(["l2"]))
             ]
         elif name in ["Ridge"]:
             hyperparams = [
@@ -120,16 +123,11 @@ def get_registered_components(model_names, task):
             ]
         elif name == "GaussianNB":
             hyperparams = []
-        elif name == "MultinomialNB":
-            hyperparams = [
-                Hyperparam("alpha", Real(1e-3, 10.0)),
-                Hyperparam("fit_prior", Categorical([True, False]))
-            ]
         elif name == "AdaBoostClassifier" or name == "AdaBoostRegressor":
             hyperparams = [
                 Hyperparam("n_estimators", Integer(10, 1000)),
                 Hyperparam("learning_rate", Real(0.01, 2.0)),
-                Hyperparam("algorithm", Categorical(["SAMME", "SAMME.R"]) if "Classifier" in name else Categorical(["SAMME.R"]))  # only SAMME for regressor in sklearn
+                Hyperparam("algorithm", Categorical(["SAMME"]) if "Classifier" in name else Categorical(["SAMME.R"]))  # only SAMME for regressor in sklearn
             ]
         elif name == "BaggingClassifier" or name == "BaggingRegressor":
             hyperparams = bagging_common
@@ -159,17 +157,6 @@ def get_registered_components(model_names, task):
                 Hyperparam("reg_alpha", Real(0.0, 10.0)),  # L1 regularization
                 Hyperparam("reg_lambda", Real(0.0, 10.0)),  # L2 regularization
             ]            
-        elif name in ["CatBoostClassifier", "CatBoostRegressor"]:
-            hyperparams = [
-                Hyperparam("iterations", Integer(10, 1000)),
-                Hyperparam("learning_rate", Real(0.01, 0.3)),
-                Hyperparam("depth", Integer(4, 10)),
-                Hyperparam("l2_leaf_reg", Real(1.0, 10.0)),  # L2 regularization
-                Hyperparam("bagging_temperature", Real(0.0, 1.0)),  # randomness control
-                Hyperparam("border_count", Integer(32, 255)),  # binning
-                Hyperparam("random_strength", Real(0.0, 1.0)),
-                Hyperparam("grow_policy", Categorical(["SymmetricTree", "Depthwise", "Lossguide"])),
-            ]
         else:
             hyperparams = []
 
@@ -219,21 +206,11 @@ regression_space = SearchSpace(
     task=TaskType.REGRESSION
 )
 
-# -----------------------------
-# Output and sampling
-# -----------------------------
-print("📘 Classification SearchSpace:")
-print(classification_space)
-print("\n🎯 Sample SearchPoint (Classification):")
-print(classification_space.sample().describe())
-
-print("\n📗 Regression SearchSpace:")
-print(regression_space)
-print("\n🎯 Sample SearchPoint (Regression):")
-print(regression_space.sample().describe())
 
 # -----------------------------
 # Serialize to YAML (optional)
 # -----------------------------
-regression_space.to_yaml(path="./regression_space.yaml")
-classification_space.to_yaml(path="./classification_space.yaml")
+
+if serialize:
+    regression_space.to_yaml(path="./regression_space.yaml")
+    classification_space.to_yaml(path="./classification_space.yaml")
