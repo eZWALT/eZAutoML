@@ -16,7 +16,7 @@
 ![](./resources/logo_red_transparent.png)
 -->
 <p align="center">
-  <img src="./resources/logo_white.jpeg" alt="eZAutoML Logo" width="300"/>
+  <img src="./resources/logo_transparent.png" alt="eZAutoML Logo" width="300"/>
 </p>
 
 ## Overview
@@ -85,75 +85,6 @@ You can also use eZAutoML within Python scripts (though this feature is still be
 ```python
 ???
 ```
-
-
-## WIP
-
-## WIP TODO List for eZAutoML
-
-### 1. **Core System Setup**
-- [ ] **Implement Dataset Loading (`datasets.py`)**
-   - Build a utility to load datasets from various formats (CSV, Parquet, etc.).
-   - Implement functionality to split datasets into train and test sets.
-
-- [ ] **Preprocessing (`preprocess.py`)**
-   - Implement basic preprocessing such as:
-     - Feature scaling (StandardScaler)
-     - Label encoding for classification tasks
-     - Handling missing values (if necessary)
-   - **Optional**: Extend to more advanced preprocessing in the future.
-  
-### 2. **Model Implementation**
-- [ ] **Model Definitions (`models.py`)**
-   - Implement a list of models:
-     - SVM, RandomForest, XGBoost, etc.
-     - Ensure models can be easily swapped based on the user's request in CLI (`--models` flag).
-   
-- [ ] **Search Strategy (`search.py`)**
-   - Implement the abstract optimizer class, and separate search strategies such as:
-     - **Random Search**: Use for hyperparameter tuning.
-     - **Grid Search**: For exhaustive search of hyperparameters.
-   - Provide flexibility to add new strategies later.
-
-### 3. **Model Evaluation**
-- [x] **Evaluator (`evaluation.py`)**
-   - Implement cross-validation to assess model performance.
-   - Support various metrics (accuracy, F1 score, etc.) based on the task (classification/regression).
-
-- [ ] **Leaderboard (`reporting.py`)**
-   - Track and store model performance (accuracy, metrics).
-   - Build a leaderboard that ranks models based on their cross-validation score.
-
-### 4. **Optimization System**
-- [ ] **Abstract Optimizer (`search.py`)**
-   - Implement a base class for optimizers, handling setup and execution of hyperparameter search.
-   - Design the optimizer to integrate with different search strategies (Random Search, Grid Search).
-  
-- [ ] **Random Search Optimizer** 
-   - Implement random hyperparameter search strategy.
-   - Randomly sample hyperparameters from predefined search spaces.
-   - Use the evaluator to assess performance during each trial.
-
-### 5. **History Tracking**
-- [ ] **Build History Logging System (`history.py`)**
-   - Implement a system to store trial results (model parameters, validation scores, etc.).
-   - Provide an easy way to retrieve and analyze previous experiment results.
-  
-### 6. **Reporting and Output**
-- [ ] **Reporting (`reporting.py`)**
-   - Create functionality to log experiment results.
-   - Optionally generate visualization such as bar plots for leaderboard.
-   - Save reports and models to the specified output directory.
-  
-### 7. **Configuration System**
-- [ ] **Config Management (`config.py`)**
-   - Define default search spaces for hyperparameters.
-   - Allow easy configuration of model hyperparameters and search spaces.
-   - Ensure flexibility for future extension.
-
-
-
-
 
 ## Contributing
 

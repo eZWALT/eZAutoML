@@ -1,4 +1,10 @@
 # Byte-compiled / optimized / DLL files
+src/data
+cifar-10-batches-py/ 
+FashionMNIST/
+MNIST/
+cifar-10-python.tar.gz 
+
 __pycache__/
 *.py[cod]
 *$py.class
