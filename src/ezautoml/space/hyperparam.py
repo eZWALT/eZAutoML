@@ -1,5 +1,6 @@
 # Hyperparameter class (to sample and store hyperparameters)
 from ezautoml.space.space import Integer, Real, Categorical, Space
+from typing import Union
 
 # ===----------------------------------------------------------------------===#
 # Space                                                                       #
@@ -15,9 +16,9 @@ class Hyperparam:
         self.name = name
         self.space = space  # Space defines the range (could be Categorical, Integer, or Real)
 
-    def sample(self):
+    def sample(self) -> Union[str, int, float]:
         """Sample a value from the hyperparameter space."""
-        return Hyperparam(name=self.name, space=self.space.sample())
+        return self.space.sample()
 
     def to_dict(self) -> dict:
         """Serialize a hyperparameter to a dictionary, using the space's to_dict."""

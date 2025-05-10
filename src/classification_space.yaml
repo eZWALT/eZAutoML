@@ -15,24 +15,31 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: max_depth
     space:
-      high: 15
-      low: 3
+      high: 50
+      low: 1
       type: Integer
   - name: min_samples_split
     space:
-      high: 10
+      high: 20
       low: 2
       type: Integer
   - name: min_samples_leaf
     space:
-      high: 5
+      high: 10
       low: 1
       type: Integer
+  - name: max_features
+    space:
+      categories:
+      - sqrt
+      - log2
+      - null
+      type: Categorical
   name: RandomForestClassifier
   tag: model_selection
   task: classification
@@ -40,19 +47,24 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: learning_rate
     space:
-      high: 0.3
+      high: 0.5
       low: 0.01
       type: Real
   - name: max_depth
     space:
-      high: 15
-      low: 3
+      high: 50
+      low: 1
       type: Integer
+  - name: subsample
+    space:
+      high: 1.0
+      low: 0.5
+      type: Real
   name: GradientBoostingClassifier
   tag: model_selection
   task: classification
@@ -60,20 +72,21 @@ models:
   hyperparams:
   - name: C
     space:
-      high: 10
-      low: 0.01
+      high: 100.0
+      low: 0.0001
       type: Real
   - name: max_iter
     space:
-      high: 500
-      low: 50
+      high: 1000
+      low: 100
       type: Integer
-  - name: solver
+  - name: penalty
     space:
       categories:
-      - liblinear
-      - saga
-      - lbfgs
+      - l1
+      - l2
+      - elasticnet
+      - none
       type: Categorical
   name: LogisticRegression
   tag: model_selection
@@ -82,8 +95,8 @@ models:
   hyperparams:
   - name: C
     space:
-      high: 10
-      low: 0.01
+      high: 100.0
+      low: 0.1
       type: Real
   - name: kernel
     space:
@@ -95,9 +108,15 @@ models:
       type: Categorical
   - name: gamma
     space:
-      high: 1
-      low: 0.01
-      type: Real
+      categories:
+      - scale
+      - auto
+      type: Categorical
+  - name: degree
+    space:
+      high: 5
+      low: 2
+      type: Integer
   name: SVC
   tag: model_selection
   task: classification
@@ -105,32 +124,50 @@ models:
   hyperparams:
   - name: n_neighbors
     space:
-      high: 15
-      low: 3
+      high: 50
+      low: 1
       type: Integer
+  - name: weights
+    space:
+      categories:
+      - uniform
+      - distance
+      type: Categorical
   - name: leaf_size
     space:
-      high: 50
+      high: 100
       low: 10
+      type: Integer
+  - name: p
+    space:
+      high: 2
+      low: 1
       type: Integer
   name: KNeighborsClassifier
   tag: model_selection
   task: classification
 - constructor: DecisionTreeClassifier
   hyperparams:
+  - name: criterion
+    space:
+      categories:
+      - gini
+      - entropy
+      - log_loss
+      type: Categorical
   - name: max_depth
     space:
-      high: 100
+      high: 50
       low: 1
       type: Integer
   - name: min_samples_split
     space:
-      high: 10
+      high: 20
       low: 2
       type: Integer
   - name: min_samples_leaf
     space:
-      high: 5
+      high: 10
       low: 1
       type: Integer
   name: DecisionTreeClassifier
@@ -145,9 +182,15 @@ models:
   hyperparams:
   - name: alpha
     space:
-      high: 10
-      low: 0.01
+      high: 10.0
+      low: 0.001
       type: Real
+  - name: fit_prior
+    space:
+      categories:
+      - true
+      - false
+      type: Categorical
   name: MultinomialNB
   tag: model_selection
   task: classification
@@ -155,14 +198,20 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: learning_rate
     space:
-      high: 1
+      high: 2.0
       low: 0.01
       type: Real
+  - name: algorithm
+    space:
+      categories:
+      - SAMME
+      - SAMME.R
+      type: Categorical
   name: AdaBoostClassifier
   tag: model_selection
   task: classification
@@ -175,12 +224,12 @@ models:
       type: Integer
   - name: max_samples
     space:
-      high: 1
+      high: 1.0
       low: 0.1
       type: Real
   - name: max_features
     space:
-      high: 1
+      high: 1.0
       low: 0.1
       type: Real
   name: BaggingClassifier
@@ -190,22 +239,22 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: max_depth
     space:
-      high: 15
-      low: 3
+      high: 50
+      low: 1
       type: Integer
   - name: min_samples_split
     space:
-      high: 10
+      high: 20
       low: 2
       type: Integer
   - name: min_samples_leaf
     space:
-      high: 5
+      high: 10
       low: 1
       type: Integer
   name: ExtraTreesClassifier
@@ -215,7 +264,7 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: learning_rate
@@ -228,6 +277,36 @@ models:
       high: 15
       low: 3
       type: Integer
+  - name: min_child_weight
+    space:
+      high: 10
+      low: 1
+      type: Integer
+  - name: subsample
+    space:
+      high: 1.0
+      low: 0.5
+      type: Real
+  - name: colsample_bytree
+    space:
+      high: 1.0
+      low: 0.5
+      type: Real
+  - name: gamma
+    space:
+      high: 5.0
+      low: 0.0
+      type: Real
+  - name: reg_alpha
+    space:
+      high: 10.0
+      low: 0.0
+      type: Real
+  - name: reg_lambda
+    space:
+      high: 10.0
+      low: 0.0
+      type: Real
   name: XGBClassifier
   tag: model_selection
   task: classification
@@ -235,19 +314,49 @@ models:
   hyperparams:
   - name: n_estimators
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: learning_rate
     space:
       high: 0.3
-      low: 0.01
+      low: 0.001
       type: Real
+  - name: num_leaves
+    space:
+      high: 150
+      low: 20
+      type: Integer
   - name: max_depth
     space:
-      high: 15
-      low: 3
+      high: 30
+      low: -1
       type: Integer
+  - name: min_child_samples
+    space:
+      high: 100
+      low: 5
+      type: Integer
+  - name: subsample
+    space:
+      high: 1.0
+      low: 0.5
+      type: Real
+  - name: colsample_bytree
+    space:
+      high: 1.0
+      low: 0.5
+      type: Real
+  - name: reg_alpha
+    space:
+      high: 10.0
+      low: 0.0
+      type: Real
+  - name: reg_lambda
+    space:
+      high: 10.0
+      low: 0.0
+      type: Real
   name: LGBMClassifier
   tag: model_selection
   task: classification
@@ -255,7 +364,7 @@ models:
   hyperparams:
   - name: iterations
     space:
-      high: 100
+      high: 1000
       low: 10
       type: Integer
   - name: learning_rate
@@ -265,9 +374,36 @@ models:
       type: Real
   - name: depth
     space:
-      high: 15
-      low: 3
+      high: 10
+      low: 4
       type: Integer
+  - name: l2_leaf_reg
+    space:
+      high: 10.0
+      low: 1.0
+      type: Real
+  - name: bagging_temperature
+    space:
+      high: 1.0
+      low: 0.0
+      type: Real
+  - name: border_count
+    space:
+      high: 255
+      low: 32
+      type: Integer
+  - name: random_strength
+    space:
+      high: 1.0
+      low: 0.0
+      type: Real
+  - name: grow_policy
+    space:
+      categories:
+      - SymmetricTree
+      - Depthwise
+      - Lossguide
+      type: Categorical
   name: CatBoostClassifier
   tag: model_selection
   task: classification

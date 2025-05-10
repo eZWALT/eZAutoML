@@ -56,6 +56,7 @@ class SearchPoint:
     def describe(self) -> Dict[str, Any]:
         return {
             "model": self.model.name,
+            # LOL
             "model_params": self.model_params,
             "data_processors": [
                 {"name": proc.name, "params": params}

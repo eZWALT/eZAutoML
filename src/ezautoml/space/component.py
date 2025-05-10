@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Union
 from enum import Enum
 import inspect
 from loguru import logger
@@ -75,7 +75,7 @@ class Component:
                 f"Component '{self.name}' of tag '{self.tag.name}' is missing required methods: {missing}"
             )
 
-    def sample_params(self) -> dict:
+    def sample_params(self) -> Dict[str, Union[str, int, float]]:
         return {hp.name: hp.sample() for hp in self.hyperparams}
 
     def instantiate(self, params: dict):

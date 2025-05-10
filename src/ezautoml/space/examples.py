@@ -38,101 +38,151 @@ null_components = [
 # -----------------------------
 def get_registered_components(model_names, task):
     components = []
-    for name in model_names:
-        if constructor_registry.has(name):
-            constructor = constructor_registry.get(name)
-            
-            # Define hyperparameters for each model
-            if name == "RandomForestClassifier" or name == "RandomForestRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("max_depth", Integer(3, 15)),
-                    Hyperparam("min_samples_split", Integer(2, 10)),
-                    Hyperparam("min_samples_leaf", Integer(1, 5)),
-                ]
-            elif name == "GradientBoostingClassifier" or name == "GradientBoostingRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("learning_rate", Real(0.01, 0.3)),
-                    Hyperparam("max_depth", Integer(3, 15)),
-                ]
-            elif name == "LogisticRegression":
-                hyperparams = [
-                    Hyperparam("C", Real(0.01, 10)),
-                    Hyperparam("max_iter", Integer(50, 500)),
-                    Hyperparam("solver", Categorical(["liblinear", "saga", "lbfgs"])),
-                ]
-            elif name == "SVC":
-                hyperparams = [
-                    Hyperparam("C", Real(0.01, 10)),
-                    Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
-                    Hyperparam("gamma", Real(0.01, 1)),
-                ]
-            elif name == "KNeighborsClassifier" or name == "KNeighborsRegressor":
-                hyperparams = [
-                    Hyperparam("n_neighbors", Integer(3, 15)),
-                    Hyperparam("leaf_size", Integer(10, 50)),
-                ]
-            elif name == "DecisionTreeClassifier" or name == "DecisionTreeRegressor":
-                hyperparams = [
-                    Hyperparam("max_depth", Integer(1, 100)),
-                    Hyperparam("min_samples_split", Integer(2, 10)),
-                    Hyperparam("min_samples_leaf", Integer(1, 5)),
-                ]
-            elif name == "GaussianNB":
-                hyperparams = []  # No hyperparameters typically
-            elif name == "MultinomialNB":
-                hyperparams = [
-                    Hyperparam("alpha", Real(0.01, 10)),
-                ]
-            elif name == "AdaBoostClassifier" or name == "AdaBoostRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("learning_rate", Real(0.01, 1)),
-                ]
-            elif name == "BaggingClassifier" or name == "BaggingRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("max_samples", Real(0.1, 1)),
-                    Hyperparam("max_features", Real(0.1, 1)),
-                ]
-            elif name == "ExtraTreesClassifier" or name == "ExtraTreesRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("max_depth", Integer(3, 15)),
-                    Hyperparam("min_samples_split", Integer(2, 10)),
-                    Hyperparam("min_samples_leaf", Integer(1, 5)),
-                ]
-            elif name == "XGBClassifier" or name == "XGBRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("learning_rate", Real(0.01, 0.3)),
-                    Hyperparam("max_depth", Integer(3, 15)),
-                ]
-            elif name == "LGBMClassifier" or name == "LGBMRegressor":
-                hyperparams = [
-                    Hyperparam("n_estimators", Integer(10, 100)),
-                    Hyperparam("learning_rate", Real(0.01, 0.3)),
-                    Hyperparam("max_depth", Integer(3, 15)),
-                ]
-            elif name == "CatBoostClassifier" or name == "CatBoostRegressor":
-                hyperparams = [
-                    Hyperparam("iterations", Integer(10, 100)),
-                    Hyperparam("learning_rate", Real(0.01, 0.3)),
-                    Hyperparam("depth", Integer(3, 15)),
-                ]
-            else:
-                hyperparams = []  # Default to no hyperparameters
 
-            # Add component with hyperparameters
-            components.append(Component(
-                name=name,
-                constructor=constructor,
-                task=task,
-                tag=Tag.MODEL_SELECTION,
-                hyperparams=hyperparams
-            ))
+    for name in model_names:
+        if not constructor_registry.has(name):
+            continue
+
+        constructor = constructor_registry.get(name)
+
+        # Shared hyperparams
+        rf_tree_common = [
+            Hyperparam("n_estimators", Integer(10, 1000)),
+            Hyperparam("max_depth", Integer(1, 50)),
+            Hyperparam("min_samples_split", Integer(2, 20)),
+            Hyperparam("min_samples_leaf", Integer(1, 10))
+        ]
+        boosting_common = [
+            Hyperparam("n_estimators", Integer(10, 1000)),
+            Hyperparam("learning_rate", Real(0.01, 0.5)),
+            Hyperparam("max_depth", Integer(1, 50))
+        ]
+        bagging_common = [
+            Hyperparam("n_estimators", Integer(10, 100)),
+            Hyperparam("max_samples", Real(0.1, 1.0)),
+            Hyperparam("max_features", Real(0.1, 1.0))
+        ]
+
+        if name in ["RandomForestClassifier", "RandomForestRegressor"]:
+            hyperparams = rf_tree_common + [Hyperparam("max_features", Categorical(["sqrt", "log2", None]))]
+        elif name in ["GradientBoostingClassifier", "GradientBoostingRegressor"]:
+            hyperparams = boosting_common + [Hyperparam("subsample", Real(0.5, 1.0))]
+        elif name == "LogisticRegression":
+            hyperparams = [
+                Hyperparam("C", Real(1e-4, 100.0)),
+                Hyperparam("max_iter", Integer(100, 1000)),
+                Hyperparam("penalty", Categorical(["l1", "l2", "elasticnet", "none"]))
+            ]
+        elif name in ["Ridge"]:
+            hyperparams = [
+                Hyperparam("alpha", Real(1e-4, 100.0)),
+            ]
+        elif name == "Lasso":
+            hyperparams = [
+                Hyperparam("alpha", Real(1e-4, 10.0)),
+                Hyperparam("max_iter", Integer(100, 1000))
+            ]
+        elif name == "ElasticNet":
+            hyperparams = [
+                Hyperparam("alpha", Real(1e-4, 10.0)),
+                Hyperparam("l1_ratio", Real(0.0, 1.0)),
+                Hyperparam("max_iter", Integer(100, 1000))
+            ]
+        elif name == "LinearRegression":
+            hyperparams = []
+        elif name == "SVC":
+            hyperparams = [
+                Hyperparam("C", Real(0.1, 100.0)),
+                Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
+                Hyperparam("gamma", Categorical(["scale", "auto"])),
+                Hyperparam("degree", Integer(2, 5))
+            ]
+        elif name == "SVR":
+            hyperparams = [
+                Hyperparam("C", Real(0.1, 100.0)),
+                Hyperparam("epsilon", Real(0.01, 1.0)),
+                Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
+                Hyperparam("gamma", Categorical(["scale", "auto"]))
+            ]
+        elif name in ["KNeighborsClassifier", "KNeighborsRegressor"]:
+            hyperparams = [
+                Hyperparam("n_neighbors", Integer(1, 50)),
+                Hyperparam("weights", Categorical(["uniform", "distance"])),
+                Hyperparam("leaf_size", Integer(10, 100)),
+                Hyperparam("p", Integer(1, 2))
+            ]
+        elif name in ["DecisionTreeClassifier", "DecisionTreeRegressor"]:
+            hyperparams = [
+                Hyperparam("criterion", Categorical(["gini", "entropy", "log_loss"] if "Classifier" in name else ["squared_error", "friedman_mse", "absolute_error", "poisson"])),
+                Hyperparam("max_depth", Integer(1, 50)),
+                Hyperparam("min_samples_split", Integer(2, 20)),
+                Hyperparam("min_samples_leaf", Integer(1, 10))
+            ]
+        elif name == "GaussianNB":
+            hyperparams = []
+        elif name == "MultinomialNB":
+            hyperparams = [
+                Hyperparam("alpha", Real(1e-3, 10.0)),
+                Hyperparam("fit_prior", Categorical([True, False]))
+            ]
+        elif name == "AdaBoostClassifier" or name == "AdaBoostRegressor":
+            hyperparams = [
+                Hyperparam("n_estimators", Integer(10, 1000)),
+                Hyperparam("learning_rate", Real(0.01, 2.0)),
+                Hyperparam("algorithm", Categorical(["SAMME", "SAMME.R"]) if "Classifier" in name else Categorical(["SAMME.R"]))  # only SAMME for regressor in sklearn
+            ]
+        elif name == "BaggingClassifier" or name == "BaggingRegressor":
+            hyperparams = bagging_common
+        elif name == "ExtraTreesClassifier" or name == "ExtraTreesRegressor":
+            hyperparams = rf_tree_common
+        elif name in ["XGBClassifier", "XGBRegressor"]:
+            hyperparams = [
+                Hyperparam("n_estimators", Integer(10, 1000)),
+                Hyperparam("learning_rate", Real(0.01, 0.3)),
+                Hyperparam("max_depth", Integer(3, 15)),
+                Hyperparam("min_child_weight", Integer(1, 10)),
+                Hyperparam("subsample", Real(0.5, 1.0)),
+                Hyperparam("colsample_bytree", Real(0.5, 1.0)),
+                Hyperparam("gamma", Real(0.0, 5.0)),  # minimum loss reduction
+                Hyperparam("reg_alpha", Real(0.0, 10.0)),  # L1 regularization
+                Hyperparam("reg_lambda", Real(0.0, 10.0)),  # L2 regularization
+            ]
+        elif name in ["LGBMClassifier", "LGBMRegressor"]:
+            hyperparams = [
+                Hyperparam("n_estimators", Integer(10, 1000)),
+                Hyperparam("learning_rate", Real(0.001, 0.3)),
+                Hyperparam("num_leaves", Integer(20, 150)),
+                Hyperparam("max_depth", Integer(-1, 30)),  # -1 means no limit
+                Hyperparam("min_child_samples", Integer(5, 100)),
+                Hyperparam("subsample", Real(0.5, 1.0)),  # bagging fraction
+                Hyperparam("colsample_bytree", Real(0.5, 1.0)),  # feature fraction
+                Hyperparam("reg_alpha", Real(0.0, 10.0)),  # L1 regularization
+                Hyperparam("reg_lambda", Real(0.0, 10.0)),  # L2 regularization
+            ]            
+        elif name in ["CatBoostClassifier", "CatBoostRegressor"]:
+            hyperparams = [
+                Hyperparam("iterations", Integer(10, 1000)),
+                Hyperparam("learning_rate", Real(0.01, 0.3)),
+                Hyperparam("depth", Integer(4, 10)),
+                Hyperparam("l2_leaf_reg", Real(1.0, 10.0)),  # L2 regularization
+                Hyperparam("bagging_temperature", Real(0.0, 1.0)),  # randomness control
+                Hyperparam("border_count", Integer(32, 255)),  # binning
+                Hyperparam("random_strength", Real(0.0, 1.0)),
+                Hyperparam("grow_policy", Categorical(["SymmetricTree", "Depthwise", "Lossguide"])),
+            ]
+        else:
+            hyperparams = []
+
+        components.append(Component(
+            name=name,
+            constructor=constructor,
+            task=task,
+            tag=Tag.MODEL_SELECTION,
+            hyperparams=hyperparams
+        ))
+
     return components
+
 
 def get_null_components():
     components = []

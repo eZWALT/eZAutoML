@@ -34,7 +34,7 @@ class Categorical(Space):
     def contains(self, value):
         return value in self.categories
 
-    def sample(self):
+    def sample(self) -> str:
         return random.choice(self.categories)
 
     def to_dict(self):
@@ -54,7 +54,7 @@ class Integer(Space):
         self.low = low
         self.high = high
 
-    def sample(self):
+    def sample(self) -> int:
         return random.randint(self.low, self.high)
 
     def to_dict(self):
@@ -75,7 +75,7 @@ class Real(Space):
         self.low = low
         self.high = high
 
-    def sample(self):
+    def sample(self) -> float:
         return random.uniform(self.low, self.high)
 
     def to_dict(self):
