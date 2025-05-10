@@ -5,19 +5,24 @@ import random
 # Space                                                                       #
 #                                                                             #
 # This abstract class defines ranges for hyperparameters of different types:  #
-# Integer numbers (Natural, Integer), Real and Categorical values which can be# 
+# Integer numbers (Natural, Integer), Real and Categorical values which can be#
 # used to define the whole program search space                               #
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
 
 
 # Define Space classes
-class Space:
+class Space(ABC):
     @abstractmethod
     def sample(self):
         """Sample a value from the space."""
         pass
     
+    @abstractmethod
+    def to_dict(self):
+        """Serialize the space to a dictionary."""
+        pass
+
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
@@ -32,6 +37,13 @@ class Categorical(Space):
     def sample(self):
         return random.choice(self.categories)
 
+    def to_dict(self):
+        """Serialize the Categorical space to a dictionary."""
+        return {
+            'type': 'Categorical',
+            'categories': self.categories
+        }
+
     def __str__(self):
         return f"Categorical({self.categories})"
 
@@ -44,6 +56,14 @@ class Integer(Space):
 
     def sample(self):
         return random.randint(self.low, self.high)
+
+    def to_dict(self):
+        """Serialize the Integer space to a dictionary."""
+        return {
+            'type': 'Integer',
+            'low': self.low,
+            'high': self.high
+        }
 
     def __str__(self):
         return f"Integer({self.low}, {self.high})"
@@ -58,10 +78,16 @@ class Real(Space):
     def sample(self):
         return random.uniform(self.low, self.high)
 
+    def to_dict(self):
+        """Serialize the Real space to a dictionary."""
+        return {
+            'type': 'Real',
+            'low': self.low,
+            'high': self.high
+        }
+
     def __str__(self):
         return f"Real({self.low}, {self.high})"
-
-
 
 
 # Example of defining a simple search space

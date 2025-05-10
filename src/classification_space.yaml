@@ -1,0 +1,274 @@
+data_processors:
+- constructor: NoDataProcessing
+  hyperparams: []
+  name: no_data_proc
+  tag: data_processing
+  task: both
+feature_processors:
+- constructor: NoFeatureProcessing
+  hyperparams: []
+  name: no_feat_proc
+  tag: feature_processing
+  task: both
+models:
+- constructor: RandomForestClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: max_depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  - name: min_samples_split
+    space:
+      high: 10
+      low: 2
+      type: Integer
+  - name: min_samples_leaf
+    space:
+      high: 5
+      low: 1
+      type: Integer
+  name: RandomForestClassifier
+  tag: model_selection
+  task: classification
+- constructor: GradientBoostingClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: learning_rate
+    space:
+      high: 0.3
+      low: 0.01
+      type: Real
+  - name: max_depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  name: GradientBoostingClassifier
+  tag: model_selection
+  task: classification
+- constructor: LogisticRegression
+  hyperparams:
+  - name: C
+    space:
+      high: 10
+      low: 0.01
+      type: Real
+  - name: max_iter
+    space:
+      high: 500
+      low: 50
+      type: Integer
+  - name: solver
+    space:
+      categories:
+      - liblinear
+      - saga
+      - lbfgs
+      type: Categorical
+  name: LogisticRegression
+  tag: model_selection
+  task: classification
+- constructor: SVC
+  hyperparams:
+  - name: C
+    space:
+      high: 10
+      low: 0.01
+      type: Real
+  - name: kernel
+    space:
+      categories:
+      - linear
+      - poly
+      - rbf
+      - sigmoid
+      type: Categorical
+  - name: gamma
+    space:
+      high: 1
+      low: 0.01
+      type: Real
+  name: SVC
+  tag: model_selection
+  task: classification
+- constructor: KNeighborsClassifier
+  hyperparams:
+  - name: n_neighbors
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  - name: leaf_size
+    space:
+      high: 50
+      low: 10
+      type: Integer
+  name: KNeighborsClassifier
+  tag: model_selection
+  task: classification
+- constructor: DecisionTreeClassifier
+  hyperparams:
+  - name: max_depth
+    space:
+      high: 100
+      low: 1
+      type: Integer
+  - name: min_samples_split
+    space:
+      high: 10
+      low: 2
+      type: Integer
+  - name: min_samples_leaf
+    space:
+      high: 5
+      low: 1
+      type: Integer
+  name: DecisionTreeClassifier
+  tag: model_selection
+  task: classification
+- constructor: GaussianNB
+  hyperparams: []
+  name: GaussianNB
+  tag: model_selection
+  task: classification
+- constructor: MultinomialNB
+  hyperparams:
+  - name: alpha
+    space:
+      high: 10
+      low: 0.01
+      type: Real
+  name: MultinomialNB
+  tag: model_selection
+  task: classification
+- constructor: AdaBoostClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: learning_rate
+    space:
+      high: 1
+      low: 0.01
+      type: Real
+  name: AdaBoostClassifier
+  tag: model_selection
+  task: classification
+- constructor: BaggingClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: max_samples
+    space:
+      high: 1
+      low: 0.1
+      type: Real
+  - name: max_features
+    space:
+      high: 1
+      low: 0.1
+      type: Real
+  name: BaggingClassifier
+  tag: model_selection
+  task: classification
+- constructor: ExtraTreesClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: max_depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  - name: min_samples_split
+    space:
+      high: 10
+      low: 2
+      type: Integer
+  - name: min_samples_leaf
+    space:
+      high: 5
+      low: 1
+      type: Integer
+  name: ExtraTreesClassifier
+  tag: model_selection
+  task: classification
+- constructor: XGBClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: learning_rate
+    space:
+      high: 0.3
+      low: 0.01
+      type: Real
+  - name: max_depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  name: XGBClassifier
+  tag: model_selection
+  task: classification
+- constructor: LGBMClassifier
+  hyperparams:
+  - name: n_estimators
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: learning_rate
+    space:
+      high: 0.3
+      low: 0.01
+      type: Real
+  - name: max_depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  name: LGBMClassifier
+  tag: model_selection
+  task: classification
+- constructor: CatBoostClassifier
+  hyperparams:
+  - name: iterations
+    space:
+      high: 100
+      low: 10
+      type: Integer
+  - name: learning_rate
+    space:
+      high: 0.3
+      low: 0.01
+      type: Real
+  - name: depth
+    space:
+      high: 15
+      low: 3
+      type: Integer
+  name: CatBoostClassifier
+  tag: model_selection
+  task: classification
+task: classification

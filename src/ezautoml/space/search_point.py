@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 import yaml
 from ezautoml.space.component import Component
 from ezautoml.results.trial import Trial  
-
+from ezautoml.space.hyperparam import Hyperparam
 
 # ===----------------------------------------------------------------------===#
 # Search Point (Slice of Seach Space)                                         #
@@ -18,7 +18,7 @@ class SearchPoint:
     def __init__(
         self,
         model: Component,
-        model_params: Dict[str, Any],
+        model_params: Dict[str,Hyperparam],
         data_processors: Optional[List[Component]] = None,
         data_params_list: Optional[List[Dict[str, Any]]] = None,
         feature_processors: Optional[List[Component]] = None,
