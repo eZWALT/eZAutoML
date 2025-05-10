@@ -82,7 +82,7 @@ if __name__ == "__main__":
     from ezautoml.results.trial import Trial
     from ezautoml.results.history import History
     
-    from eZAutoML.src.ezautoml.data.loader import DatasetLoader
+    from ezautoml.data.loader import DatasetLoader
 
     # Initialize DatasetLoader
     loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
@@ -184,4 +184,4 @@ if __name__ == "__main__":
         history.add(trial)
 
     # Print summary of the best trials
-    history.summary(k=20, metrics=["accuracy"])
+    history.summary(k=50, metrics=["accuracy"])

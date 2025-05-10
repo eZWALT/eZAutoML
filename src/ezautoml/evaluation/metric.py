@@ -78,7 +78,6 @@ class MetricSet:
 
     @property
     def primary(self) -> Metric:
-        print(self.metrics)
         return self.metrics[self.primary_metric_name] 
 
 
