@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 import random
 import time
 
-from loguru import logger
 from ezautoml.space.search_space import SearchSpace
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.evaluation.metric import MetricSet
@@ -21,6 +20,7 @@ class Optimizer(ABC):
         max_trials: int,
         max_time: int,  # in seconds
         seed: Optional[int] = None,
+        verbose: bool = False
     ) -> None:
         self.metrics = metrics
         self.space = space
@@ -28,6 +28,7 @@ class Optimizer(ABC):
         self.max_time = max_time
         self.seed = seed
         self.rng = random.Random(seed)
+        self.verbose = verbose
 
         self.trial_count = 0
         self.trials: List[SearchPoint] = []

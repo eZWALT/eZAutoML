@@ -24,21 +24,25 @@ class RandomSearchOptimizer(Optimizer):
             max_time=max_time,
             seed=seed,
         )
+        __name__ = "RandomSearchOptimizer"
 
     def tell(self, report: SearchPoint) -> None:
         """Record the result of a completed trial."""
-        logger.info(f"[TELL] Received report:\n{report}")
+        if self.verbose:
+            logger.info(f"[TELL] Received report:\n{report}")
         self.trials.append(report)
         self.trial_count += 1
 
     def ask(self, n: int = 1) -> Union[SearchPoint, List[SearchPoint]]:
         """Sample new candidate configurations, unless max trials or time exceeded. m"""
         if self.stop_optimization():
-            logger.info("Stopping condition met (max trials or time).")
+            if self.verbose:
+                logger.info("Stopping condition met (max trials or time).")
             return []
 
         trials = [self.space.sample() for _ in range(n)]
-        logger.info(f"[ASK] Sampling {n} configuration(s).")
+        if self.verbose:
+            logger.info(f"[ASK] Sampling {n} configuration(s).")
         return trials if n > 1 else trials[0]
 
     def get_best_trial(self) -> Optional[SearchPoint]:
@@ -56,37 +60,46 @@ class RandomSearchOptimizer(Optimizer):
             key=lambda t: t.result.get(key, float("-inf") if reverse else float("inf")),
         )
 
-# This is a minimal example of using random search once
+
 if __name__ == "__main__":
+    import time
+    import random
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.linear_model import LogisticRegression
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import PCA
-    from sklearn.metrics import accuracy_score
     from sklearn.model_selection import train_test_split
-    from sklearn.datasets import load_iris
+    from sklearn.datasets import load_iris, load_breast_cancer
+    from sklearn.metrics import accuracy_score
+
     from ezautoml.space.component import Component, Tag
     from ezautoml.space.hyperparam import Hyperparam, Integer, Real
     from ezautoml.space.search_space import SearchSpace
     from ezautoml.evaluation.metric import Metric, MetricSet
+    from ezautoml.evaluation.evaluator import Evaluator
     from ezautoml.evaluation.task import TaskType
-    from ezautoml.optimization.optimizer import Optimizer
-    from loguru import logger
+    from ezautoml.results.trial import Trial
+    from ezautoml.results.history import History
+    
+    from eZAutoML.src.ezautoml.data.loader import DatasetLoader
 
-    # Load the Iris dataset
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
+    # Initialize DatasetLoader
+    loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
+    datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])  # Load datasets
 
-    # Split dataset into training and testing sets
+    # Select a dataset (for example, load the breast cancer dataset)
+    X, y = datasets["breast_cancer"]  # Adjust depending on the dataset you want to use
+
+    # Split into train/test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-    # Define performance metrics
+    # Define metrics and evaluator
     metrics = MetricSet(
         {"accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False)},
         primary_metric_name="accuracy"
     )
+    evaluator = Evaluator(metric_set=metrics)
 
     # Define hyperparameters for models
     rf_params = [
@@ -102,7 +115,7 @@ if __name__ == "__main__":
         Hyperparam("max_iter", Integer(50, 500)),
     ]
 
-    # Define components
+    # Define model components
     rf_component = Component(
         name="RandomForest",
         tag=Tag.MODEL_SELECTION,
@@ -122,56 +135,53 @@ if __name__ == "__main__":
         hyperparams=lr_params,
     )
 
-    scaler_component = Component("StandardScaler", StandardScaler, [])
-    pca_component = Component("PCA", PCA, [Hyperparam("n_components", Real(0.5, 0.99))])
-
-    # Create search space with model and preprocessing steps
+    # Define search space and optimizer
     search_space = SearchSpace(
         models=[rf_component, dt_component, lr_component],
-        data_processors=[scaler_component],
-        feature_processors=[pca_component],
-        task=TaskType.CLASSIFICATION
+        task="classification"
     )
 
-    # Create optimizer with maximum trials and time limit
-    optimizer = RandomSearchOptimizer.create(
+    optimizer = RandomSearchOptimizer(
         space=search_space,
         metrics=metrics,
-        seed=42,
-        max_trials=20,  # Limit the number of trials
-        max_time=3600,  # Limit the total time (1 hour)
+        max_trials=100,
+        max_time=3600,
+        seed=42
     )
 
-    # Sample a trial
-    trial = optimizer.ask()
-    logger.success(f"[TRIAL] Sampled configuration:\n{trial}")
+    # Initialize trial history
+    history = History()
 
-    # Fit the model using the trial configuration
-    # Assuming the trial result contains actual model instantiation
-    model = trial.model.instantiate(trial.model_params)
-    scaler = trial.data_processors[0].instantiate(trial.data_params_list[0])
-    pca = trial.feature_processors[0].instantiate(trial.feature_params_list[0])
+    # Run trials
+    for _ in range(100):
+        trial_config = optimizer.ask()
+        if not trial_config:
+            break
 
-    # Preprocess the data: Scaling and PCA
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_train_pca = pca.fit_transform(X_train_scaled)
-    model.fit(X_train_pca, y_train)
+        start = time.time()
 
-    # Evaluate the model
-    X_test_scaled = scaler.transform(X_test)
-    X_test_pca = pca.transform(X_test_scaled)
-    predictions = model.predict(X_test_pca)
-    accuracy = accuracy_score(y_test, predictions)
+        # Instantiate model and fit
+        model = trial_config.model.instantiate(trial_config.model_params)
+        model.fit(X_train, y_train)
 
-    # Report the trial's result
-    trial.result = {"accuracy": accuracy}
-    optimizer.tell(trial)
+        # Predict and evaluate
+        predictions = model.predict(X_test)
+        evaluation = evaluator.evaluate(y_test, predictions)
+        duration = time.time() - start
 
-    # Get the best trial after a few iterations
-    best_trial = optimizer.get_best_trial()
-    logger.success(f"Best trial: {best_trial}")
+        # Update optimizer with trial results
+        trial_config.result = evaluation.results
+        optimizer.tell(trial_config)
 
-    # Print final results
-    if best_trial:
-        logger.success(f"Best trial configuration: {best_trial.describe()}")
-        logger.success(f"Best trial accuracy: {best_trial.result.get('accuracy')}")
+        # Record trial
+        trial = Trial(
+            seed=42,
+            model_name=trial_config.model.name,
+            optimizer_name="RandomSearch",
+            evaluation=evaluation,
+            duration=duration
+        )
+        history.add(trial)
+
+    # Print summary of the best trials
+    history.summary(k=20, metrics=["accuracy"])

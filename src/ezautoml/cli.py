@@ -37,7 +37,7 @@ def parse_args():
     )
     parser.add_argument(
         "--search",
-        choices=["random", "grid"],
+        choices=["random", "optuna"],
         default="random",
         help="Black-box optimization algorithm to perform"
     )
@@ -88,13 +88,11 @@ def parse_args():
 def run_cli():
     args = parse_args()
 
-    from ezautoml.automl_runner import AutoMLRunner
+    from eZAutoML.src.ezautoml.runner import AutoMLRunner
     from ezautoml.evaluation.evaluator import Evaluator
     from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
     from ezautoml.space.search_space import SearchSpace
     from loguru import logger
-
-    # TODO THIS IS A PROTOTYPE INTERFACE
     
     search_space = SearchSpace.from_file("search_space.yaml")
     optimizer = RandomSearchOptimizer()

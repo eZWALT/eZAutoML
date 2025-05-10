@@ -119,7 +119,6 @@ class SearchSpace:
 
     
 import os
-# Not found in global scope wtf
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.impute import SimpleImputer

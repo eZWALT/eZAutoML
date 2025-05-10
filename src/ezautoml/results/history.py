@@ -2,8 +2,24 @@ from typing import List, Optional
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
+import json
+import csv
+from dataclasses import asdict, is_dataclass
+
 
 from ezautoml.results.trial import Trial
+from ezautoml.evaluation.evaluator import Evaluation
+
+def to_json_serializable(obj):
+    """Convert a dataclass or object to a JSON-serializable format."""
+    if is_dataclass(obj):
+        return {k: to_json_serializable(v) for k, v in asdict(obj).items()}
+    elif isinstance(obj, dict):
+        return {k: to_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_json_serializable(v) for v in obj]
+    else:
+        return obj
 
 class History:
     def __init__(self):
@@ -54,23 +70,78 @@ class History:
             table.add_row(*row)
 
         console.print(table)
+    
+    def to_csv(self, filepath: str):
+        """Save the trial history to a CSV file."""
+        if not self.trials:
+            return
+
+        fieldnames = ["seed", "model", "optimizer", "duration"] + list(self.trials[0].evaluation.results.keys())
+
+        with open(filepath, mode="w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for trial in self.trials:
+                row = {
+                    "seed": trial.seed,
+                    "model": trial.model_name,
+                    "optimizer": trial.optimizer_name,
+                    "duration": trial.duration
+                }
+                row.update(trial.evaluation.results)
+                writer.writerow(row)
+                
+    def to_json(self, filepath: str):
+        """Save the entire history (trials, evaluations) to a JSON file."""
+        with open(filepath, 'w') as f:
+            json.dump([to_json_serializable(trial) for trial in self.trials], f, indent=4)
+
+    @classmethod
+    def from_json(cls, filepath: str) -> "History":
+        """Load history from a JSON file."""
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        
+        history = cls()
+        for trial_data in data:
+            # Deserialize the trial and evaluation
+            evaluation = Evaluation(
+                metric_set=MetricSet({}),  # Assuming MetricSet is initialized properly
+                results=trial_data['evaluation']
+            )
+            trial = Trial(
+                seed=trial_data['seed'],
+                model_name=trial_data['model_name'],
+                optimizer_name=trial_data['optimizer_name'],
+                evaluation=evaluation,
+                duration=trial_data['duration']
+            )
+            history.add(trial)
+
+        return history
+        
+    
 
 
 if __name__ == "__main__":
-    from types import SimpleNamespace
-    from ezautoml.evaluation.evaluation import Evaluation
+    from ezautoml.evaluation.evaluator import Evaluation
     from ezautoml.evaluation.metric import Metric, MetricSet
-    from sklearn.metrics import accuracy_score
+    from ezautoml.results.trial import Trial
+    from ezautoml.results.history import History
 
     # Dummy function to create trials
     def make_trial(seed, acc):
-        eval = Evaluation(MetricSet({}), results={"accuracy": acc})
+        eval = Evaluation(metric_set=MetricSet({}), results={"accuracy": acc})
         return Trial(seed=seed, model_name=f"Model_{seed}", optimizer_name="Optuna", evaluation=eval, duration=0.01 * seed)
 
-    # Create History
+    # Create History and add trials
     history = History()
     for i in range(10):
         history.add(make_trial(seed=i, acc=0.8 + i * 0.01))
 
     # Display summary of the top 5 trials based on accuracy
     history.summary(metrics=["accuracy"])
+
+    # Save the history to JSON and CSV files
+    history.to_json("history.json")
+    history.to_csv("history_summary.csv")
