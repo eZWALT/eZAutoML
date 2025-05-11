@@ -263,11 +263,6 @@ models:
       high: 2.0
       low: 0.01
       type: Real
-  - name: algorithm
-    space:
-      categories:
-      - SAMME.R
-      type: Categorical
   name: AdaBoostRegressor
   tag: model_selection
   task: regression

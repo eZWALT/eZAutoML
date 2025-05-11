@@ -124,11 +124,19 @@ def get_registered_components(model_names, task):
         elif name == "GaussianNB":
             hyperparams = []
         elif name == "AdaBoostClassifier" or name == "AdaBoostRegressor":
+            # Initialize common hyperparameters
             hyperparams = [
                 Hyperparam("n_estimators", Integer(10, 1000)),
                 Hyperparam("learning_rate", Real(0.01, 2.0)),
-                Hyperparam("algorithm", Categorical(["SAMME"]) if "Classifier" in name else Categorical(["SAMME.R"]))  # only SAMME for regressor in sklearn
             ]
+            
+            if "Classifier" in name:
+                hyperparams.append(
+                    Hyperparam("algorithm", Categorical(["SAMME"]))
+                )
+            elif "Regressor" in name:
+                # AdaBoostRegressor does not use the 'algorithm' parameter, so it's excluded.
+                pass
         elif name == "BaggingClassifier" or name == "BaggingRegressor":
             hyperparams = bagging_common
         elif name == "ExtraTreesClassifier" or name == "ExtraTreesRegressor":
