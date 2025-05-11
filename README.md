@@ -51,22 +51,19 @@ pip install -e .
 
 ### Command Line Interface 
 
-Usage:
+Not only it can be used programatically but we provide an extremely lightweight CLI api to instantiate tabular AutoML pipelines with just a single command, for example: 
 
 ```bash
-ezautoml --dataset <path_to_data> --target <target_name> --task <classification|regression> --models <model1,model2,...> --cv <folds> --output <path_to_output>
+ezautoml --dataset data/smoking.csv --target smoking --task classification --trials 10 --verbose   
 ```
 
 Options:
 - dataset: Path to the dataset file (CSV, parquet...)
 - target: The target column name for prediction
-- task: Task type: classification or regression
+- task: Task type: classification/c or regression/r
 - search: Black-box optimization algorithm to perform
-- models: Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!
-- cv: Number of cross-validation folds (if needed)
 - output: Directory to save the output models/results
 - trials: Maximum number of trials inside an optimiation algorithm
-- preprocess: Whether to perform minimal preprocessing (Scaling, Encoding...) or not
 - verbose: Increase logging verbosity 
 - version: Show the current version 
 
@@ -83,7 +80,40 @@ There are future features that are still a work-in-progress and will be enabled 
 You can also use eZAutoML within Python scripts (though this feature is still being developed). This will allow you to work through Python code or via custom pipelines in the future.
 
 ```python
-???
+    import time
+    from sklearn.model_selection import train_test_split
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.metrics import accuracy_score
+    from ezautoml.model import eZAutoML
+    from ezautoml.space.search_space import SearchSpace
+    from ezautoml.evaluation.metric import MetricSet, Metric
+    from ezautoml.evaluation.task import TaskType
+    from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
+
+    # Load dataset (classification example)
+    data = load_breast_cancer()
+    X, y = data.data, data.target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Define metrics for classification
+    metrics = MetricSet(
+        {"accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False)},
+        primary_metric_name="accuracy"
+    )
+    # Load classification search space
+    search_space = SearchSpace.from_yaml("classification_space.yaml")
+    # Initialize eZAutoML for classification
+    ezautoml = eZAutoML(
+        search_space=search_space,
+        task=TaskType.CLASSIFICATION,
+        metrics=metrics,
+        max_trials=10,
+        max_time=600,  
+        seed=42
+    )
+    ezautoml.fit(X_train, y_train)
+    test_accuracy = ezautoml.test(X_test, y_test)
+    ezautoml.summary(k=5)
 ```
 
 ## Contributing

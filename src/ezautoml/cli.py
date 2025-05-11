@@ -33,8 +33,12 @@ def parse_args():
     # Required arguments
     parser.add_argument("--dataset", type=str, required=True, help="Path to the dataset file (CSV)")
     parser.add_argument("--target", type=str, required=True, help="The target column name for prediction")
-    parser.add_argument("--task", choices=["classification", "regression"], required=True, help="Task type: classification or regression")
-
+    parser.add_argument(
+        "--task", 
+        choices=["classification", "regression", "c", "r"], 
+        required=True, 
+        help="Task type: 'classification', 'regression', 'c' for classification, or 'r' for regression"
+    )
     # Optional arguments
     parser.add_argument("--models", type=str, default="lgbm,xgb,rf", help="Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!")
     parser.add_argument("--search", choices=["random", "optuna"], default="random", help="Optimization algorithm to perform")
@@ -82,6 +86,16 @@ def get_task_type_and_metrics(task):
     """
     Returns the appropriate TaskType and metrics based on the task (classification or regression).
     """
+    # Map short options 'c' and 'r' to their corresponding full task names
+    task_mapping = {
+        "c": "classification",
+        "r": "regression",
+        "classification": "classification",
+        "regression": "regression"
+    }
+
+    task = task_mapping.get(task, task)  # Get the corresponding full task name
+
     if task == "classification":
         task_type = TaskType.CLASSIFICATION
         metrics = MetricSet(
@@ -143,11 +157,21 @@ def main():
     if X is None or y is None:
         return
 
+    task_mapping = {
+        "c": "classification",
+        "r": "regression",
+        "classification": "classification",
+        "regression": "regression"
+    }
+
+    # Normalize task
+    task = task_mapping.get(args.task, args.task)
+
     # Get task type and metrics
-    task_type, metrics = get_task_type_and_metrics(args.task)
+    task_type, metrics = get_task_type_and_metrics(task)
 
     # Load search space from YAML or a predefined space (based on task)
-    search_space_file = "classification_space.yaml" if args.task == "classification" else "regression_space.yaml"
+    search_space_file = "classification_space.yaml" if task == "classification" else "regression_space.yaml"
     search_space = SearchSpace.from_yaml(search_space_file)
 
     # Select optimizer based on the search argument
