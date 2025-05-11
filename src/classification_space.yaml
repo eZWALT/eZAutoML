@@ -187,11 +187,6 @@ models:
       high: 2.0
       low: 0.01
       type: Real
-  - name: algorithm
-    space:
-      categories:
-      - SAMME
-      type: Categorical
   name: AdaBoostClassifier
   tag: model_selection
   task: classification

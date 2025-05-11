@@ -1,168 +1,181 @@
 import argparse
 import os
+import pandas as pd
+import re
 from loguru import logger
-from ezautoml.results.history import History
-from ezautoml.evaluation.evaluator import Evaluator
-from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
-from ezautoml.results.trial import Trial
-from ezautoml.space.search_space import SearchSpace
-from ezautoml.evaluation.metric import MetricSet
-from ezautoml.data.loader import DatasetLoader
-from ezautoml.evaluation.task import TaskType
-from ezautoml.model.ezautoml import eZAutoML
+
+from sklearn.metrics import accuracy_score, mean_squared_error, f1_score, r2_score
 from rich.console import Console
 from rich.table import Table
+
+from ezautoml.data.preprocess import prepare_data
+from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
+from ezautoml.optimization.optimizers.optuna import OptunaOptimizer
+from ezautoml.space.search_space import SearchSpace
+from ezautoml.evaluation.metric import MetricSet, Metric
+from ezautoml.evaluation.task import TaskType
+from ezautoml.model import eZAutoML
+from ezautoml.__version__ import __version__
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def parse_args():
+    """
+    Parses the command-line arguments.
+    """
     parser = argparse.ArgumentParser(
         prog="ezautoml",
         description="A Democratized, lightweight and modern framework for Python Automated Machine Learning.",
         epilog="For more info, visit: https://github.com/eZWALT/eZAutoML"
     )
 
-    parser.add_argument(
-        "--dataset",
-        type=str,
-        required=True,
-        help="Path to the dataset file (CSV) or a list of paths"
-    )
-    parser.add_argument(
-        "--target",
-        type=str,
-        required=True,
-        help="The target column name for prediction"
-    )
-    parser.add_argument(
-        "--task",
-        choices=["classification", "regression"],
-        required=True,
-        help="Task type: classification or regression"
-    )
-    parser.add_argument(
-        "--models",
-        type=str,
-        default="lgbm,xgb,rf",
-        help="Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!"
-    )
-    parser.add_argument(
-        "--search",
-        choices=["random", "optuna"],
-        default="random",
-        help="Black-box optimization algorithm to perform"
-    )
-    parser.add_argument(
-        "--cv",
-        type=int,
-        default=5,
-        help="Number of cross-validation folds (if needed)"
-    )
-    parser.add_argument(
-        "--metrics",
-        type=str,
-        default="accuracy,f1_score",
-        help="Comma-separated list of metrics to use (e.g., accuracy,f1_score for classification or mse,r2 for regression)"
-    )
-    parser.add_argument(
-        "--scoring",
-        type=str,
-        default="accuracy",
-        help="Scoring metric to use for evaluation"
-    )
-    parser.add_argument(
-        "--trials",
-        type=int,
-        default=10,
-        help="Maximum number of trials inside an optimization algorithm"
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default=".",
-        help="Directory to save the output models/results"
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Increase logging verbosity"
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"eZAutoML {__version__}",
-        help="Show the current version"
-    )
+    # Required arguments
+    parser.add_argument("--dataset", type=str, required=True, help="Path to the dataset file (CSV)")
+    parser.add_argument("--target", type=str, required=True, help="The target column name for prediction")
+    parser.add_argument("--task", choices=["classification", "regression"], required=True, help="Task type: classification or regression")
+
+    # Optional arguments
+    parser.add_argument("--models", type=str, default="lgbm,xgb,rf", help="Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!")
+    parser.add_argument("--search", choices=["random", "optuna"], default="random", help="Optimization algorithm to perform")
+    parser.add_argument("--trials", type=int, default=10, help="Maximum number of trials inside an optimization algorithm")
+    parser.add_argument("--output", type=str, default=".", help="Directory to save the output models/results")
+    parser.add_argument("--save", action="store_true", help="Directory to save the output models/results")
+    parser.add_argument("--verbose", action="store_true", help="Increase logging verbosity")
+    parser.add_argument("--version", action="version", version=f"eZAutoML {__version__}", help="Show the current version")
 
     return parser.parse_args()
 
-def run_cli():
+def sanitize_feature_names(df):
+    """
+    Sanitizes column names by replacing non-alphanumeric characters with underscores.
+    """
+    sanitized_columns = [re.sub(r'[^0-9a-zA-Z_]', '_', col) for col in df.columns]
+    df.columns = sanitized_columns
+    return df
+
+def load_and_prepare_data(dataset_path, target_column):
+    """
+    Loads and preprocesses the dataset.
+    It sanitizes feature names, handles missing values, encodes categorical variables,
+    and scales numerical features.
+    """
+    if not os.path.exists(dataset_path):
+        logger.error(f"Dataset path {dataset_path} does not exist.")
+        return None, None
+
+    data = pd.read_csv(dataset_path)
+    
+    # Sanitize column names
+    data = sanitize_feature_names(data)
+
+    # Prepare the data using the prepare_data function
+    X, y = prepare_data(data, target_column)
+
+    if X is None or y is None:
+        logger.error(f"Failed to prepare the data for model training.")
+        return None, None
+
+    return X, y
+
+def get_task_type_and_metrics(task):
+    """
+    Returns the appropriate TaskType and metrics based on the task (classification or regression).
+    """
+    if task == "classification":
+        task_type = TaskType.CLASSIFICATION
+        metrics = MetricSet(
+            {
+                "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
+                "f1_score": Metric(name="f1_score", fn=f1_score, minimize=False, default_kwargs={"average": "macro"})
+            },
+            primary_metric_name="f1_score"
+        )
+    elif task == "regression":
+        task_type = TaskType.REGRESSION
+        metrics = MetricSet(
+            {
+                "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
+                "r2": Metric(name="r2", fn=r2_score, minimize=False)
+            },
+            primary_metric_name="mse"
+        )
+
+    return task_type, metrics
+
+def select_optimizer(search_strategy):
+    """
+    Returns the optimizer class based on the search strategy.
+    Displays a WIP message for Optuna and stops the execution.
+    """
+    if search_strategy == "optuna":
+        log_wip_message()  # Log the WIP message
+        raise SystemExit("Optuna optimizer is currently a Work In Progress. The process will be terminated.")  # Terminate the process
+    else:
+        optimizer_cls = RandomSearchOptimizer
+
+    return optimizer_cls
+
+def log_wip_message():
+    """
+    Logs a Work In Progress (WIP) message for the Optuna optimizer.
+    """
+    logger.warning("Optuna optimizer is WIP (Work in Progress). Please proceed with caution.")
+
+def save_results(ezautoml, output_dir):
+    """
+    Saves the results and models to the output directory.
+    """
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        ezautoml.history.to_json(os.path.join(output_dir, "history.json"))
+        ezautoml.history.to_csv(os.path.join(output_dir, "history_summary.csv"))
+
+def main():
+    """
+    Main function to orchestrate the workflow.
+    """
+    # Parse arguments
     args = parse_args()
 
-    # Initialize DatasetLoader
-    loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
-    
-    # Handle single or multiple dataset paths
-    dataset_paths = args.dataset.split(",")  # Split if there are multiple paths provided
-    
-    # Load user datasets using the DatasetLoader's load_user_datasets method
-    logger.info(f"Loading datasets from: {dataset_paths}")
-    datasets = loader.load_user_datasets(file_paths=dataset_paths, metadata={args.dataset: args.target})
-    
-    # Assuming only one dataset is loaded; you can adapt it for multiple datasets if needed
-    if len(datasets) == 0:
-        logger.error("No datasets loaded.")
+    # Load and prepare dataset
+    X, y = load_and_prepare_data(args.dataset, args.target)
+    if X is None or y is None:
         return
-    
-    # For simplicity, we take the first loaded dataset
-    dataset_name = list(datasets.keys())[0]
-    X, y = datasets[dataset_name]
 
-    # Split dataset into training and testing sets
-    from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    # Get task type and metrics
+    task_type, metrics = get_task_type_and_metrics(args.task)
 
-    # Define metrics and evaluator
-    from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score
+    # Load search space from YAML or a predefined space (based on task)
+    search_space_file = "classification_space.yaml" if args.task == "classification" else "regression_space.yaml"
+    search_space = SearchSpace.from_yaml(search_space_file)
 
-    if args.task == "classification":
-        metrics = MetricSet(
-            {"accuracy": accuracy_score, "f1_score": f1_score},
-            primary_metric_name="accuracy"
-        )
-        task_type = TaskType.CLASSIFICATION
-    else:
-        metrics = MetricSet(
-            {"mse": mean_squared_error, "r2": r2_score},
-            primary_metric_name="r2"
-        )
-        task_type = TaskType.REGRESSION
+    # Select optimizer based on the search argument
+    optimizer_cls = select_optimizer(args.search)
 
-    # Define search space (You might want to load this from a file)
-    search_space = SearchSpace.from_file("search_space.yaml")
-
-    # Initialize eZAutoML
+    # Instantiate eZAutoML
     ezautoml = eZAutoML(
         search_space=search_space,
         task=task_type,
         metrics=metrics,
+        optimizer_cls=optimizer_cls,
         max_trials=args.trials,
-        max_time=600,  # 10 minutes
-        seed=42,
         verbose=args.verbose
     )
 
     # Fit model
-    ezautoml.fit(X_train, y_train)
-    
-    # Test using the test data
-    test_accuracy = ezautoml.test(X_test, y_test)
-    logger.info(f"Test Accuracy: {test_accuracy:.4f}")
+    ezautoml.fit(X, y)
 
-    # Show best trial summary
-    summary = ezautoml.summary(k=5)
-    logger.info(f"Best Trials Summary:\n{summary}")
+    # Test using the test data
+    test_accuracy = ezautoml.test(X, y)
+    logger.info(f"Test accuracy: {test_accuracy}")
+
+    # Show summary of best trials
+    summary = ezautoml.summary(k=10)
+
+    # Save results to the output directory
+    if args.save:
+        save_results(ezautoml, args.output)
 
 if __name__ == "__main__":
-    run_cli()
+    main()

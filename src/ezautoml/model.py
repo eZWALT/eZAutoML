@@ -164,7 +164,7 @@ class eZAutoML:
         # Make predictions and evaluate
         predictions = self.predict(X_test)        
         primary_name = self.metrics.primary_metric_name
-        test_score = self.metrics.primary.fn (y_test, predictions)
+        test_score = self.metrics.primary.fn (y_test, predictions, **self.metrics.primary.default_kwargs)
           
         if self.verbose:
             self.console.print(f"[bold blue]Test {primary_name}:[/bold blue] {test_score:.4f}")
@@ -173,6 +173,8 @@ class eZAutoML:
     def summary(self, k=5):
         minimize_map = {self.metrics.primary.name: self.metrics.primary.minimize}
         return self.history.summary(k=k, metrics=[self.metrics.primary.name], minimize_map=minimize_map)
+    
+    # TODO: Add Serialization method for models for a big save function (model + output results)
 
 # --- Main Function ---
 import time

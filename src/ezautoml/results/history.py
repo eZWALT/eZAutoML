@@ -181,5 +181,5 @@ if __name__ == "__main__":
         print(f"\nBest Trial: Model={best_trial.model_name}, Accuracy={best_trial.evaluation.results['accuracy']:.4f}")
 
     # Export history
-    history.to_json("history.json")
-    history.to_csv("history_summary.csv")
+    #history.to_json("history.json")
+    #history.to_csv("history_summary.csv")
