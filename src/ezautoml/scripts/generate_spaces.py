@@ -11,17 +11,19 @@ serialize = True
 # Define models by task
 # -----------------------------
 classification_model_names = [
-    "RandomForestClassifier", "GradientBoostingClassifier", "LogisticRegression", "SVC",
+    "RandomForestClassifier", "GradientBoostingClassifier", "LogisticRegression", 
     "KNeighborsClassifier", "DecisionTreeClassifier", "GaussianNB",
     "AdaBoostClassifier", "BaggingClassifier", "ExtraTreesClassifier",
     "XGBClassifier", "LGBMClassifier",
+    #"SVC"
 ]
 
 regression_model_names = [
     "RandomForestRegressor", "GradientBoostingRegressor", "Ridge", "Lasso",
-    "ElasticNet", "LinearRegression", "SVR", "KNeighborsRegressor",
+    "ElasticNet", "LinearRegression", "KNeighborsRegressor",
     "DecisionTreeRegressor", "XGBRegressor", "AdaBoostRegressor",
     "BaggingRegressor", "ExtraTreesRegressor", "LGBMRegressor",
+    #"SVR",
 ]
 
 # -----------------------------
@@ -91,20 +93,20 @@ def get_registered_components(model_names, task):
             ]
         elif name == "LinearRegression":
             hyperparams = []
-        elif name == "SVC":
-            hyperparams = [
-                Hyperparam("C", Real(0.1, 100.0)),
-                Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
-                Hyperparam("gamma", Categorical(["scale", "auto"])),
-                Hyperparam("degree", Integer(2, 5))
-            ]
-        elif name == "SVR":
-            hyperparams = [
-                Hyperparam("C", Real(0.1, 100.0)),
-                Hyperparam("epsilon", Real(0.01, 1.0)),
-                Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
-                Hyperparam("gamma", Categorical(["scale", "auto"]))
-            ]
+        # elif name == "SVC":
+        #     hyperparams = [
+        #         Hyperparam("C", Real(0.1, 100.0)),
+        #         Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
+        #         Hyperparam("gamma", Categorical(["scale", "auto"])),
+        #         Hyperparam("degree", Integer(2, 5))
+        #     ]
+        # elif name == "SVR":
+        #     hyperparams = [
+        #         Hyperparam("C", Real(0.1, 100.0)),
+        #         Hyperparam("epsilon", Real(0.01, 1.0)),
+        #         Hyperparam("kernel", Categorical(["linear", "poly", "rbf", "sigmoid"])),
+        #         Hyperparam("gamma", Categorical(["scale", "auto"]))
+        #     ]
         elif name in ["KNeighborsClassifier", "KNeighborsRegressor"]:
             hyperparams = [
                 Hyperparam("n_neighbors", Integer(1, 20)),

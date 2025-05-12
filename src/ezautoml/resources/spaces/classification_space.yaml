@@ -88,35 +88,6 @@ models:
   name: LogisticRegression
   tag: model_selection
   task: classification
-- constructor: SVC
-  hyperparams:
-  - name: C
-    space:
-      high: 100.0
-      low: 0.1
-      type: Real
-  - name: kernel
-    space:
-      categories:
-      - linear
-      - poly
-      - rbf
-      - sigmoid
-      type: Categorical
-  - name: gamma
-    space:
-      categories:
-      - scale
-      - auto
-      type: Categorical
-  - name: degree
-    space:
-      high: 5
-      low: 2
-      type: Integer
-  name: SVC
-  tag: model_selection
-  task: classification
 - constructor: KNeighborsClassifier
   hyperparams:
   - name: n_neighbors

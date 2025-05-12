@@ -58,23 +58,16 @@ def sanitize_feature_names(df):
     df.columns = sanitized_columns
     return df
 
-def load_and_prepare_data(dataset_path, target_column):
-    """
-    Loads and preprocesses the dataset.
-    It sanitizes feature names, handles missing values, encodes categorical variables,
-    and scales numerical features.
-    """
+
+def load_and_prepare_data(dataset_path, target_column, task_type):
     if not os.path.exists(dataset_path):
         logger.error(f"Dataset path {dataset_path} does not exist.")
         return None, None
 
     data = pd.read_csv(dataset_path)
-    
-    # Sanitize column names
     data = sanitize_feature_names(data)
 
-    # Prepare the data using the prepare_data function
-    X, y = prepare_data(data, target_column)
+    X, y, _ = prepare_data(data, target_column, task_type=task_type)
 
     if X is None or y is None:
         logger.error(f"Failed to prepare the data for model training.")
@@ -146,16 +139,7 @@ def save_results(ezautoml, output_dir):
         ezautoml.history.to_csv(os.path.join(output_dir, "history_summary.csv"))
 
 def main():
-    """
-    Main function to orchestrate the workflow.
-    """
-    # Parse arguments
     args = parse_args()
-
-    # Load and prepare dataset
-    X, y = load_and_prepare_data(args.dataset, args.target)
-    if X is None or y is None:
-        return
 
     task_mapping = {
         "c": "classification",
@@ -164,20 +148,18 @@ def main():
         "regression": "regression"
     }
 
-    # Normalize task
     task = task_mapping.get(args.task, args.task)
-
-    # Get task type and metrics
     task_type, metrics = get_task_type_and_metrics(task)
+    X, y = load_and_prepare_data(args.dataset, args.target, task)
 
-    # Load search space from YAML or a predefined space (based on task)
-    search_space_file = "classification_space.yaml" if task == "classification" else "regression_space.yaml"
-    search_space = SearchSpace.from_yaml(search_space_file)
+    if X is None or y is None:
+        return
 
-    # Select optimizer based on the search argument
+    search_space_file = "classification_space" if task == "classification" else "regression_space"
+    search_space = SearchSpace.from_builtin(search_space_file)
+
     optimizer_cls = select_optimizer(args.search)
 
-    # Instantiate eZAutoML
     ezautoml = eZAutoML(
         search_space=search_space,
         task=task_type,
@@ -187,15 +169,14 @@ def main():
         verbose=args.verbose
     )
 
-    # Fit model
     ezautoml.fit(X, y)
-
-    # Test using the test data
     test_accuracy = ezautoml.test(X, y)
     logger.info(f"Test accuracy: {test_accuracy}")
 
-    # Show summary of best trials
     summary = ezautoml.summary(k=10)
+
+    if args.save:
+        save_results(ezautoml, args.output)(k=10)
 
     # Save results to the output directory
     if args.save:

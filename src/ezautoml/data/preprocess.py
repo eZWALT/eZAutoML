@@ -4,59 +4,59 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 
-def prepare_data(df, target_column, scale=True):
+def prepare_data(df, target_column, scale=True, task_type="classification"):
     """
-    Preprocess the given DataFrame, handling missing values, categorical encoding,
-    and feature scaling.
+    Preprocess the given DataFrame: missing value handling, categorical encoding,
+    target encoding (for classification), and optional scaling.
 
     Parameters:
-    - df: The input DataFrame.
-    - target_column: The name of the column to predict.
-    - scale: Whether or not to scale numeric features. Default is True.
+    - df: Input DataFrame.
+    - target_column: Name of the target column.
+    - scale: Whether to scale numeric features. Default is True.
+    - task_type: "classification" or "regression".
 
     Returns:
-    - X: The features as a NumPy array.
-    - y: The target as a NumPy array.
+    - X: Preprocessed feature matrix.
+    - y: Processed target array.
+    - target_encoder: LabelEncoder for classification tasks (None otherwise).
     """
     
-    # Step 1: Separate target variable from features
+    # 1. Separate features and target
     X = df.drop(columns=[target_column])
     y = df[target_column]
 
-    # Step 2: Clean the features by removing non-predictive columns (e.g., "id", "name")
+    # 2. Drop non-predictive columns
     X = X.loc[:, ~X.columns.str.contains("id|name|url", case=False)]
 
-    # Step 3: Handle missing values (imputation)
+    # 3. Impute missing values
     num_cols = X.select_dtypes(include=["number"]).columns
-    cat_cols = X.select_dtypes(include=["object"]).columns
+    cat_cols = X.select_dtypes(include=["object", "category"]).columns
 
-    # Impute numeric features
     for col in num_cols:
         if X[col].isnull().any():
-            imputer = SimpleImputer(strategy="mean")
-            X[col] = imputer.fit_transform(X[[col]]).ravel()
+            X[col] = SimpleImputer(strategy="mean").fit_transform(X[[col]]).ravel()
 
-    # Impute categorical features
     for col in cat_cols:
         if X[col].isnull().any():
-            imputer = SimpleImputer(strategy="most_frequent")
-            X[col] = imputer.fit_transform(X[[col]]).ravel()
+            X[col] = SimpleImputer(strategy="most_frequent").fit_transform(X[[col]]).ravel()
 
-    # Step 4: Convert categorical features to numeric using LabelEncoder
-    for col in X.select_dtypes(include="object").columns:
+    # 4. Encode categorical features
+    for col in cat_cols:
         X[col] = LabelEncoder().fit_transform(X[col])
 
-    # Step 5: Scale the numeric features (Standardization)
+    # 5. Feature scaling
     if scale:
-        scaler = StandardScaler()
-        X[num_cols] = scaler.fit_transform(X[num_cols])
+        X[num_cols] = StandardScaler().fit_transform(X[num_cols])
 
-    # Step 6: Handle target variable
-    if y.dtype == object or isinstance(y[0], str):
-        y = LabelEncoder().fit_transform(y)
-    
-    # Step 7: Optionally split into train and test sets
-    # You can add this if needed:
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # 6. Encode target (if classification)
+    target_encoder = None
+    if task_type == "classification":
+        if not pd.api.types.is_integer_dtype(y) or y.nunique() != len(np.unique(y)):
+            target_encoder = LabelEncoder()
+            y = target_encoder.fit_transform(y)
+        elif y.min() < 0:
+            # e.g., from [-1, 1] to [0, 1]
+            target_encoder = LabelEncoder()
+            y = target_encoder.fit_transform(y)
 
-    return X, y
+    return X, y, target_encoder

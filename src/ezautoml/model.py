@@ -199,7 +199,7 @@ def main():
         metadata_path="../../data/metadata.json"
     )
     datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])
-    X, y = datasets["breast_cancer"]  # Replace with any available dataset
+    X, y = datasets["dota"]  # Replace with any available dataset
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     # Define metrics and evaluator
     metrics = MetricSet(

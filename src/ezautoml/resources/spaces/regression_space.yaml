@@ -118,35 +118,6 @@ models:
   name: LinearRegression
   tag: model_selection
   task: regression
-- constructor: SVR
-  hyperparams:
-  - name: C
-    space:
-      high: 100.0
-      low: 0.1
-      type: Real
-  - name: epsilon
-    space:
-      high: 1.0
-      low: 0.01
-      type: Real
-  - name: kernel
-    space:
-      categories:
-      - linear
-      - poly
-      - rbf
-      - sigmoid
-      type: Categorical
-  - name: gamma
-    space:
-      categories:
-      - scale
-      - auto
-      type: Categorical
-  name: SVR
-  tag: model_selection
-  task: regression
 - constructor: KNeighborsRegressor
   hyperparams:
   - name: n_neighbors

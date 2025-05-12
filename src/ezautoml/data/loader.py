@@ -164,11 +164,23 @@ class DatasetLoader:
 
     def _convert_categoricals(self, X, y):
         X = X.copy()
+        
+        # Convert categorical features in X
         for col in X.select_dtypes(include="object").columns:
             X[col] = LabelEncoder().fit_transform(X[col])
-        if y.dtype == object or isinstance(y[0], str):
+        
+        # If y is numeric (not categorical), encode based on unique values
+        if np.issubdtype(y.dtype, np.number):
+            # Use np.unique to get the unique values and map them to a range starting from 0
+            unique_values = np.unique(y)
+            y = np.searchsorted(unique_values, y)  # This maps the original values to new ones
+            
+        else:
+            # For categorical y, use LabelEncoder
             y = LabelEncoder().fit_transform(y)
+            
         return X, y
+
 
     def _clean_and_preprocess_local(self, X, y):
         for col in X.columns:
