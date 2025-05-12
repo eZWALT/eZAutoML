@@ -211,5 +211,5 @@ regression_space = SearchSpace(
 # -----------------------------
 
 if serialize:
-    regression_space.to_yaml(path="./regression_space.yaml")
-    classification_space.to_yaml(path="./classification_space.yaml")
+    regression_space.to_yaml(path="./resources/regression_space.yaml")
+    classification_space.to_yaml(path="./resources/classification_space.yaml")

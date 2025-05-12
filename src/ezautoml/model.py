@@ -253,7 +253,7 @@ def main2():
     )
 
     # Load regression search space
-    search_space = SearchSpace.from_yaml("regression_space.yaml")
+    search_space = SearchSpace.from_builtin("regression_space")
 
     # Initialize eZAutoML
     ezautoml = eZAutoML(

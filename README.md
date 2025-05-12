@@ -101,19 +101,19 @@ You can also use eZAutoML within Python scripts (though this feature is still be
         primary_metric_name="accuracy"
     )
     # Load classification search space
-    search_space = SearchSpace.from_yaml("classification_space.yaml")
+    search_space = SearchSpace.from_builtin("classification_space")
     # Initialize eZAutoML for classification
     ezautoml = eZAutoML(
         search_space=search_space,
         task=TaskType.CLASSIFICATION,
         metrics=metrics,
-        max_trials=10,
+        max_trials=25,
         max_time=600,  
         seed=42
     )
     ezautoml.fit(X_train, y_train)
     test_accuracy = ezautoml.test(X_test, y_test)
-    ezautoml.summary(k=5)
+    ezautoml.summary(k=10)
 ```
 
 ## Contributing

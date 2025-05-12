@@ -13,10 +13,13 @@
 from typing import List, Optional
 import random
 import yaml
+import importlib.resources
 
 from ezautoml.evaluation.task import TaskType
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.space.component import Component
+# Default search spaces serialized
+import ezautoml.resources.spaces as spaces
 
 
 class SearchSpace:
@@ -105,6 +108,23 @@ class SearchSpace:
         task = TaskType[data["task"].upper()]
 
         return SearchSpace(models, data_procs, feat_procs, task)
+    
+    @staticmethod
+    def from_builtin(name: str) -> 'SearchSpace':
+        """Load a built-in YAML search space by name."""
+        import ezautoml.resources.spaces as spaces
+        # Using importlib.resources.files() to read the YAML file from package resources
+        with importlib.resources.files(spaces).joinpath(f"{name}.yaml").open("r") as f:
+            data = yaml.safe_load(f)
+
+        # Parse components from the YAML data
+        models = [Component.from_dict(d) for d in data["models"]]
+        data_procs = [Component.from_dict(d) for d in data.get("data_processors", [])]
+        feat_procs = [Component.from_dict(d) for d in data.get("feature_processors", [])]
+        task = TaskType[data["task"].upper()]
+
+        # Return the SearchSpace instance
+        return SearchSpace(models, data_procs, feat_procs, task)
 
     def __str__(self):
         models_str = ', '.join([str(model) for model in self.models])
@@ -117,63 +137,9 @@ class SearchSpace:
             f"feature_processors=[{feature_processors_str}])"
         )
 
-    
-import os
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA, FastICA
-
 if __name__ == "__main__":
-    # Define components
-    models = [
-        Component(name="rf", constructor=RandomForestClassifier, task=TaskType.BOTH),
-        Component(name="logreg", constructor=LogisticRegression, task=TaskType.CLASSIFICATION),
-    ]
+    # Load a built-in search space by name
+    search_space = SearchSpace.from_builtin("regression_space")
 
-    data_processors = [
-        Component(name="imputer", constructor=SimpleImputer, task=TaskType.BOTH),
-        Component(name="scaler", constructor=StandardScaler, task=TaskType.CLASSIFICATION),
-    ]
-
-    feature_processors = [
-        Component(name="pca", constructor=PCA, task=TaskType.BOTH),
-        Component(name="ica", constructor=FastICA, task=TaskType.CLASSIFICATION),
-    ]
-
-    # Create search space
-    task_type = TaskType.CLASSIFICATION
-    search_space = SearchSpace(
-        models=models,
-        data_processors=data_processors,
-        feature_processors=feature_processors,
-        task=task_type,
-    )
-
-    print("🔍 Created SearchSpace:")
-    print(search_space)
-
-    # Sample one configuration
-    print("\n🎯 Sampling SearchPoint...")
-    search_point = search_space.sample()
-    print(search_point.describe())
-
-    # Save and load
-    yaml_path = "search_space.yaml"
-    search_space.to_yaml(yaml_path)
-    print(f"\n📦 Serialized SearchSpace to '{yaml_path}'")
-
-    print(globals())
-    loaded_space = SearchSpace.from_yaml(yaml_path)
-    print("\n📤 Loaded SearchSpace:")
-    print(loaded_space)
-
-    # Sample again from loaded space
-    print("\n🎯 Sampling from loaded SearchSpace...")
-    new_point = loaded_space.sample()
-    print(new_point.describe())
-
-    # Optional: Clean up
-    if os.path.exists(yaml_path):
-        os.remove(yaml_path)
+    # Print out the loaded search space
+    print(f"Loaded SearchSpace: {search_space}")
