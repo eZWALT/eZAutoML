@@ -151,7 +151,7 @@ models:
   hyperparams:
   - name: n_neighbors
     space:
-      high: 50
+      high: 20
       low: 1
       type: Integer
   - name: weights

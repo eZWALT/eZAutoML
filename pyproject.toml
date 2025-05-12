@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eZAutoML"
-version = "0.6.5"
+version = "0.6.6"
 description = "A Democratized lightweight and transparent AutoML framework"
 authors = [
     { name="eZWALT", email="waltertv02@gmail.com" }

@@ -6,9 +6,7 @@ from ezautoml.space.hyperparam import Hyperparam
 from ezautoml.space.space import Integer, Real, Categorical
 from ezautoml.registry import constructor_registry
 
-
 serialize = True
-
 # -----------------------------
 # Define models by task
 # -----------------------------
@@ -109,7 +107,7 @@ def get_registered_components(model_names, task):
             ]
         elif name in ["KNeighborsClassifier", "KNeighborsRegressor"]:
             hyperparams = [
-                Hyperparam("n_neighbors", Integer(1, 50)),
+                Hyperparam("n_neighbors", Integer(1, 20)),
                 Hyperparam("weights", Categorical(["uniform", "distance"])),
                 Hyperparam("leaf_size", Integer(10, 100)),
                 Hyperparam("p", Integer(1, 2))
@@ -211,5 +209,5 @@ regression_space = SearchSpace(
 # -----------------------------
 
 if serialize:
-    regression_space.to_yaml(path="./resources/regression_space.yaml")
-    classification_space.to_yaml(path="./resources/classification_space.yaml")
+    regression_space.to_yaml(path="./ezautoml/resources/spaces/regression_space.yaml")
+    classification_space.to_yaml(path="./ezautoml/resources/spaces/classification_space.yaml")
