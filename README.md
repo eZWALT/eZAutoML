@@ -16,7 +16,7 @@
 ![](./resources/logo_red_transparent.png)
 -->
 <h1 align="center">
-<img src="https://raw.githubusercontent.com/eZAutoML/src/resources/logo/logo_transparent.png" width="300">
+<img src="https://raw.githubusercontent.com/eZWALT/eZAutoML/refs/heads/main/src/ezautoml/resources/logo/logo_transparent.png" width="300">
 </h1><br>
 
 
