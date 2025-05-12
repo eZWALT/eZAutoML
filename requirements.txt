@@ -7,3 +7,4 @@ xgboost
 catboost 
 lightgbm
 loguru
+rich

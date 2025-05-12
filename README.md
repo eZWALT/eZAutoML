@@ -15,9 +15,10 @@
 <!---
 ![](./resources/logo_red_transparent.png)
 -->
-<p align="center">
-  <img src="./resources/logo_transparent.png" alt="eZAutoML Logo" width="300"/>
-</p>
+<h1 align="center">
+<img src="https://raw.githubusercontent.com/eZAutoML/src/resources/logo/logo_transparent.png" width="300">
+</h1><br>
+
 
 ## Overview
 

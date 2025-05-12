@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eZAutoML"
-version = "0.6.0"
+version = "0.6.5"
 description = "A Democratized lightweight and transparent AutoML framework"
 authors = [
     { name="eZWALT", email="waltertv02@gmail.com" }
@@ -19,6 +19,7 @@ dependencies = [
     "xgboost",
     "catboost",
     "lightgbm",
+    "rich",
 ]
 classifiers = [
   'Intended Audience :: Science/Research',
@@ -35,6 +36,9 @@ classifiers = [
 ]
 license = "BSD-3-Clause"
 
+[project.urls]
+Repository = "https://github.com/eZWALT/eZAutoML"
+Issues = "https://github.com/eZWALT/eZAutoML/issues"
 [project.optional-dependencies]
 path_loaders = ["openpyxl", "pyarrow"]
 
