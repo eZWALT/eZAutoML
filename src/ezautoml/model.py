@@ -113,7 +113,7 @@ class eZAutoML:
             score = evaluation.results[primary_name]
             if self.verbose:
                 self.console.print(
-                    f"[Trial {len(self.history.trials)}] {primary_name}={score:.4f} in {duration:.2f}s",
+                    f"[Trial {len(self.history.trials)}] {primary_name}={score:.4f} in {duration:.2f}s - {model_name}",
                     style="dim"
                 )
 
