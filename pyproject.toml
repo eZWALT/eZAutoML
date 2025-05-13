@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eZAutoML"
-version = "0.7.0"
+version = "0.7.1"
 description = "A Democratized lightweight and transparent AutoML framework"
 authors = [
     { name="eZWALT", email="waltertv02@gmail.com" }
@@ -50,3 +50,4 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 ezautoml = ["resources/search_spaces/*.yaml"]
+"ezautoml.resources.spaces" = ["*.yaml"]
