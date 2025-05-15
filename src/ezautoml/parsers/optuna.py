@@ -1,13 +1,14 @@
-import optuna 
+import optuna
 
 from ezautoml.space.search_space import SearchSpace
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.space.component import Component
 from ezautoml.space.space import Integer, Categorical, Real
 
+
 class OptunaParser:
     """Parse the search space and convert it into Optuna-compatible trials."""
-    
+
     def __init__(self, search_space: SearchSpace):
         self.search_space = search_space
 
@@ -26,10 +27,12 @@ class OptunaParser:
 
     def convert_to_search_point(self, trial: optuna.Trial) -> SearchPoint:
         """Convert an Optuna trial to a SearchPoint."""
-        
+
         # Select model configuration based on trial's suggested model index
-        model_config = self.search_space.models[trial.suggest_int("model", 0, len(self.search_space.models) - 1)]
-        
+        model_config = self.search_space.models[
+            trial.suggest_int("model", 0, len(self.search_space.models) - 1)
+        ]
+
         # Parse the hyperparameters for the model
         model_params = self.parse_hyperparameters(model_config, trial)
 

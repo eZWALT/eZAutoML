@@ -1,9 +1,7 @@
-
-
 from typing import Dict, Any, List, Optional
 import yaml
 from ezautoml.space.component import Component
-from ezautoml.results.trial import Trial  
+from ezautoml.results.trial import Trial
 from ezautoml.space.hyperparam import Hyperparam
 
 # ===----------------------------------------------------------------------===#
@@ -18,7 +16,7 @@ class SearchPoint:
     def __init__(
         self,
         model: Component,
-        model_params: Dict[str,Hyperparam],
+        model_params: Dict[str, Hyperparam],
         data_processors: Optional[List[Component]] = None,
         data_params_list: Optional[List[Dict[str, Any]]] = None,
         feature_processors: Optional[List[Component]] = None,
@@ -31,10 +29,12 @@ class SearchPoint:
         self.data_params_list = data_params_list or [{} for _ in self.data_processors]
 
         self.feature_processors = feature_processors or []
-        self.feature_params_list = feature_params_list or [{} for _ in self.feature_processors]
+        self.feature_params_list = feature_params_list or [
+            {} for _ in self.feature_processors
+        ]
 
         # stores the evaluation result
-        self.result: Optional[Trial] = None  
+        self.result: Optional[Trial] = None
 
     def instantiate_pipeline(self):
         """
@@ -64,8 +64,10 @@ class SearchPoint:
             ],
             "feature_processors": [
                 {"name": proc.name, "params": params}
-                for proc, params in zip(self.feature_processors, self.feature_params_list)
-            ]
+                for proc, params in zip(
+                    self.feature_processors, self.feature_params_list
+                )
+            ],
         }
 
     def to_dict(self) -> Dict[str, Any]:
@@ -79,7 +81,7 @@ class SearchPoint:
             yaml.dump(self.to_dict(), f)
 
     @staticmethod
-    def from_yaml(path: str, components: List[Component]) -> 'SearchPoint':
+    def from_yaml(path: str, components: List[Component]) -> "SearchPoint":
         with open(path, "r") as f:
             data = yaml.safe_load(f)
 
@@ -89,11 +91,17 @@ class SearchPoint:
         model = find_component(data["model"])
         model_params = data["model_params"]
 
-        data_processors = [find_component(dp["name"]) for dp in data.get("data_processors", [])]
+        data_processors = [
+            find_component(dp["name"]) for dp in data.get("data_processors", [])
+        ]
         data_params_list = [dp["params"] for dp in data.get("data_processors", [])]
 
-        feature_processors = [find_component(fp["name"]) for fp in data.get("feature_processors", [])]
-        feature_params_list = [fp["params"] for fp in data.get("feature_processors", [])]
+        feature_processors = [
+            find_component(fp["name"]) for fp in data.get("feature_processors", [])
+        ]
+        feature_params_list = [
+            fp["params"] for fp in data.get("feature_processors", [])
+        ]
 
         sp = SearchPoint(
             model=model,
@@ -101,7 +109,7 @@ class SearchPoint:
             data_processors=data_processors,
             data_params_list=data_params_list,
             feature_processors=feature_processors,
-            feature_params_list=feature_params_list
+            feature_params_list=feature_params_list,
         )
 
         if "result" in data:
@@ -109,10 +117,10 @@ class SearchPoint:
 
         return sp
 
-
     def __str__(self):
         desc = self.describe()
         return yaml.dump(desc, sort_keys=False)
+
 
 if __name__ == "__main__":
     import yaml
@@ -133,7 +141,7 @@ if __name__ == "__main__":
         [
             Hyperparam("n_estimators", Integer(10, 100)),
             Hyperparam("max_depth", Integer(3, 10)),
-        ]
+        ],
     )
 
     scaler = Component("StandardScaler", StandardScaler, [])
@@ -143,7 +151,7 @@ if __name__ == "__main__":
         PCA,
         [
             Hyperparam("n_components", Real(0.5, 0.99)),
-        ]
+        ],
     )
 
     # Sample hyperparameters
@@ -167,7 +175,7 @@ if __name__ == "__main__":
         model_name=model.name,
         optimizer_name="RandomSearch",
         evaluation={"accuracy": 0.87, "f1_score": 0.84},
-        duration=12.3
+        duration=12.3,
     )
 
     # Serialize to YAML

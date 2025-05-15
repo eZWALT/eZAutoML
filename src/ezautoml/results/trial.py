@@ -24,10 +24,14 @@ class Trial:
         table.add_row("Seed", str(self.seed))
         table.add_row("Model", self.model_name)
         table.add_row("Optimizer", self.optimizer_name)
-        table.add_row("Evaluation", str(self.evaluation))  # Uses __str__ from Evaluation
+        table.add_row(
+            "Evaluation", str(self.evaluation)
+        )  # Uses __str__ from Evaluation
         table.add_row("Duration", f"{self.duration:.2f} seconds")
 
-        panel = Panel(table, title=f"Trial Summary (Seed: {self.seed})", title_align="left")
+        panel = Panel(
+            table, title=f"Trial Summary (Seed: {self.seed})", title_align="left"
+        )
         Console().print(panel)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -48,7 +52,7 @@ if __name__ == "__main__":
 
     # Create a dummy evaluation object
     dummy_results = {"accuracy": 0.912, "f1_score": 0.880}
-    dummy_metric_set = MetricSet(metrics={}, primary_metric_name="accuracy")  
+    dummy_metric_set = MetricSet(metrics={}, primary_metric_name="accuracy")
     evaluation = Evaluation(results=dummy_results, metric_set=dummy_metric_set)
 
     # Create and display the Trial
@@ -57,8 +61,8 @@ if __name__ == "__main__":
         model_name="ResNet50",
         optimizer_name="Adam",
         evaluation=evaluation,
-        duration=420.3
+        duration=420.3,
     )
 
-    print(str(trial))      # Pretty summary
+    print(str(trial))  # Pretty summary
     trial.print_summary()  # Rich terminal panel

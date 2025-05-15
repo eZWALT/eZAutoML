@@ -9,6 +9,7 @@ from enum import Enum
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
 
+
 class Comparison(str, Enum):
     BETTER = "better"
     WORSE = "worse"
@@ -26,14 +27,19 @@ class Metric:
     def evaluate(self, *args, **kwargs) -> float:
         if self.fn is None:
             raise ValueError(f"Metric '{self.name}' has no function attached.")
-        all_kwargs = {**self.default_kwargs, **kwargs}  # Merge default and call-time kwargs
+        all_kwargs = {
+            **self.default_kwargs,
+            **kwargs,
+        }  # Merge default and call-time kwargs
         return self.fn(*args, **all_kwargs)
 
     def is_improvement(self, current: float, challenger: float) -> Comparison:
         """Compares the current value with the challenger value."""
         if current == challenger:
             return Comparison.EQUAL
-        if (challenger < current and self.minimize) or (challenger > current and not self.minimize):
+        if (challenger < current and self.minimize) or (
+            challenger > current and not self.minimize
+        ):
             return Comparison.BETTER
         return Comparison.WORSE
 
@@ -55,8 +61,9 @@ class Metric:
 @dataclass(frozen=True)
 class MetricSet:
     """A collection of multiple metrics, organized as a set."""
+
     metrics: Dict[str, Metric] = field(default_factory=dict)
-    primary_metric_name: str = "accuracy" 
+    primary_metric_name: str = "accuracy"
 
     def __getitem__(self, key: str) -> Metric:
         return self.metrics[key]
@@ -66,7 +73,7 @@ class MetricSet:
 
     def __len__(self):
         return len(self.metrics)
-    
+
     def items(self):
         return self.metrics.items()
 
@@ -78,8 +85,7 @@ class MetricSet:
 
     @property
     def primary(self) -> Metric:
-        return self.metrics[self.primary_metric_name] 
-
+        return self.metrics[self.primary_metric_name]
 
 
 if __name__ == "__main__":
@@ -87,12 +93,18 @@ if __name__ == "__main__":
     from sklearn.metrics import accuracy_score, mean_squared_error, f1_score
     import numpy as np
 
-    metrics = MetricSet({
-        "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
-        "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
-        "f1_score": Metric(name="f1_score", fn=lambda y_true, y_pred: f1_score(y_true, y_pred, average='binary'), minimize=False)
-    },
-    primary_metric_name="accuracy")
+    metrics = MetricSet(
+        {
+            "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
+            "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
+            "f1_score": Metric(
+                name="f1_score",
+                fn=lambda y_true, y_pred: f1_score(y_true, y_pred, average="binary"),
+                minimize=False,
+            ),
+        },
+        primary_metric_name="accuracy",
+    )
 
     # True and predicted values
     y_true = np.array([1, 0, 1, 1, 0])

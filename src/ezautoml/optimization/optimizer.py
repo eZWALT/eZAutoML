@@ -7,6 +7,7 @@ from ezautoml.space.search_space import SearchSpace
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.evaluation.metric import MetricSet
 
+
 class Optimizer(ABC):
     """Abstract base optimizer for CASH: model selection + hyperparameter optimization.
 
@@ -20,7 +21,7 @@ class Optimizer(ABC):
         max_trials: int,
         max_time: int,  # in seconds
         seed: Optional[int] = None,
-        verbose: bool = False
+        verbose: bool = False,
     ) -> None:
         self.metrics = metrics
         self.space = space
@@ -80,7 +81,7 @@ class Optimizer(ABC):
         max_trials: int,
         max_time: int,
         seed: Optional[int] = None,
-    ) -> 'Optimizer':
+    ) -> "Optimizer":
         return cls(
             metrics=metrics,
             space=space,
