@@ -81,7 +81,6 @@ There are future features that are still a work-in-progress and will be enabled 
 You can also use eZAutoML within Python scripts (though this feature is still being developed). This will allow you to work through Python code or via custom pipelines in the future.
 
 ```python
-    import time
     from sklearn.model_selection import train_test_split
     from sklearn.datasets import load_breast_cancer
     from sklearn.metrics import accuracy_score
