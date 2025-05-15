@@ -1,4 +1,4 @@
-# Global Constructor Registry to serialize/deserialize safely 
+# Global Constructor Registry to serialize/deserialize safely
 from dataclasses import dataclass, field
 from typing import Callable, Dict
 
@@ -10,6 +10,7 @@ from typing import Callable, Dict
 #                                                                             #
 # Author: Walter J.T.V                                                        #
 # ===----------------------------------------------------------------------===#
+
 
 @dataclass
 class ConstructorRegistry:
@@ -35,8 +36,8 @@ class ConstructorRegistry:
     def list(self):
         """Returns a list of all registered constructor names."""
         return list(self.registry)
-    
-    
+
+
 ###############################################################################
 ###############################################################################
 ################### Instantiate registry structure ############################
@@ -44,31 +45,29 @@ class ConstructorRegistry:
 ###############################################################################
 
 from sklearn.ensemble import (
-    RandomForestClassifier, RandomForestRegressor,
-    GradientBoostingClassifier, GradientBoostingRegressor,
-    AdaBoostClassifier, AdaBoostRegressor,
-    BaggingClassifier, BaggingRegressor,
-    ExtraTreesClassifier, ExtraTreesRegressor
+    RandomForestClassifier,
+    RandomForestRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    AdaBoostClassifier,
+    AdaBoostRegressor,
+    BaggingClassifier,
+    BaggingRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
 )
 from sklearn.linear_model import (
-    LogisticRegression, Ridge, Lasso, ElasticNet,
-    LinearRegression
+    LogisticRegression,
+    Ridge,
+    Lasso,
+    ElasticNet,
+    LinearRegression,
 )
-from sklearn.svm import (
-    SVC, SVR
-)
-from sklearn.neighbors import (
-    KNeighborsClassifier, KNeighborsRegressor
-)
-from sklearn.tree import (
-    DecisionTreeClassifier, DecisionTreeRegressor
-)
-from sklearn.naive_bayes import (
-    GaussianNB, MultinomialNB
-)
-from sklearn.preprocessing import (
-    StandardScaler, MinMaxScaler, RobustScaler
-)
+from sklearn.svm import SVC, SVR
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
@@ -82,7 +81,7 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 class NoFeatureEngineering:
     def fit(self, X, y=None):
         return self
-    
+
     def transform(self, X):
         return X
 
@@ -95,19 +94,21 @@ class NoFeatureProcessing:
     def transform(self, X):
         return X
 
+
 # NoDataProcessing: Does nothing, just returns the input
 class NoDataProcessing:
     def fit(self, X, y=None):
         return self
-    
+
     def transform(self, X):
         return X
+
 
 # NoOptimizationAlgSelection: A placeholder class to simulate no optimization algorithm selection
 class NoOptimizationAlgSelection:
     def fit(self, X, y=None):
         return self
-    
+
     def transform(self, X):
         return X
 
@@ -122,7 +123,7 @@ for constructor in [
     RandomForestClassifier,
     GradientBoostingClassifier,
     LogisticRegression,
-    SVC, 
+    SVC,
     KNeighborsClassifier,
     DecisionTreeClassifier,
     GaussianNB,
@@ -133,7 +134,6 @@ for constructor in [
     XGBClassifier,
     LGBMClassifier,
     CatBoostClassifier,
-
     # -----------------------------------------------------
     # 2. Regression Models (Expanded)
     # -----------------------------------------------------
@@ -152,27 +152,23 @@ for constructor in [
     ExtraTreesRegressor,  # Bagging-based model
     LGBMRegressor,
     CatBoostRegressor,
-
     # -----------------------------------------------------
     # 3. Feature processing components (Top 5)
     # -----------------------------------------------------
     KMeans,
     PCA,
-
     # -----------------------------------------------------
     # 4. Data processing components (Top 5)
     # -----------------------------------------------------
     StandardScaler,
     MinMaxScaler,
     RobustScaler,
-    
     # -----------------------------------------------------
     # 5. Null components
     # -----------------------------------------------------
     NoFeatureEngineering,
-    NoDataProcessing, 
+    NoDataProcessing,
     NoFeatureProcessing,
-    NoOptimizationAlgSelection
-    
+    NoOptimizationAlgSelection,
 ]:
     constructor_registry.register(constructor)

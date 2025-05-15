@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 
+
 def prepare_data(df, target_column, scale=True, task_type="classification"):
     """
     Preprocess the given DataFrame: missing value handling, categorical encoding,
@@ -20,7 +21,7 @@ def prepare_data(df, target_column, scale=True, task_type="classification"):
     - y: Processed target array.
     - target_encoder: LabelEncoder for classification tasks (None otherwise).
     """
-    
+
     # 1. Separate features and target
     X = df.drop(columns=[target_column])
     y = df[target_column]
@@ -38,7 +39,9 @@ def prepare_data(df, target_column, scale=True, task_type="classification"):
 
     for col in cat_cols:
         if X[col].isnull().any():
-            X[col] = SimpleImputer(strategy="most_frequent").fit_transform(X[[col]]).ravel()
+            X[col] = (
+                SimpleImputer(strategy="most_frequent").fit_transform(X[[col]]).ravel()
+            )
 
     # 4. Encode categorical features
     for col in cat_cols:

@@ -1,5 +1,3 @@
-
-
 # ===----------------------------------------------------------------------===#
 # Search Space                                                                #
 #                                                                             #
@@ -18,6 +16,7 @@ import importlib.resources
 from ezautoml.evaluation.task import TaskType
 from ezautoml.space.search_point import SearchPoint
 from ezautoml.space.component import Component
+
 # Default search spaces serialized
 import ezautoml.resources.spaces as spaces
 
@@ -32,11 +31,16 @@ class SearchSpace:
     ):
         if not models:
             raise ValueError("SearchSpace must include at least one model.")
-        
+
         # Validate unique component names
-        all_names = [c.name for c in models + (data_processors or []) + (feature_processors or [])]
+        all_names = [
+            c.name
+            for c in models + (data_processors or []) + (feature_processors or [])
+        ]
         if len(all_names) != len(set(all_names)):
-            raise ValueError("Component names must be unique across all component lists.")
+            raise ValueError(
+                "Component names must be unique across all component lists."
+            )
 
         self.models = models
         self.data_processors = data_processors or []
@@ -54,9 +58,13 @@ class SearchSpace:
         data_proc_list = []
         data_params_list = []
         if self.data_processors:
-            compatible_data = [d for d in self.data_processors if d.is_compatible(self.task)]
+            compatible_data = [
+                d for d in self.data_processors if d.is_compatible(self.task)
+            ]
             if not compatible_data:
-                raise ValueError(f"No compatible data processors found for task: {self.task}")
+                raise ValueError(
+                    f"No compatible data processors found for task: {self.task}"
+                )
             selected_data_proc = rng.choice(compatible_data)
             data_proc_list = [selected_data_proc]
             data_params_list = [selected_data_proc.sample_params()]
@@ -64,9 +72,13 @@ class SearchSpace:
         feat_proc_list = []
         feat_params_list = []
         if self.feature_processors:
-            compatible_feat = [f for f in self.feature_processors if f.is_compatible(self.task)]
+            compatible_feat = [
+                f for f in self.feature_processors if f.is_compatible(self.task)
+            ]
             if not compatible_feat:
-                raise ValueError(f"No compatible feature processors found for task: {self.task}")
+                raise ValueError(
+                    f"No compatible feature processors found for task: {self.task}"
+                )
             selected_feat_proc = rng.choice(compatible_feat)
             feat_proc_list = [selected_feat_proc]
             feat_params_list = [selected_feat_proc.sample_params()]
@@ -98,21 +110,24 @@ class SearchSpace:
             yaml.dump(full_dict, f)
 
     @staticmethod
-    def from_yaml(path: str) -> 'SearchSpace':
+    def from_yaml(path: str) -> "SearchSpace":
         with open(path, "r") as f:
             data = yaml.safe_load(f)
 
         models = [Component.from_dict(d) for d in data["models"]]
         data_procs = [Component.from_dict(d) for d in data.get("data_processors", [])]
-        feat_procs = [Component.from_dict(d) for d in data.get("feature_processors", [])]
+        feat_procs = [
+            Component.from_dict(d) for d in data.get("feature_processors", [])
+        ]
         task = TaskType[data["task"].upper()]
 
         return SearchSpace(models, data_procs, feat_procs, task)
-    
+
     @staticmethod
-    def from_builtin(name: str) -> 'SearchSpace':
+    def from_builtin(name: str) -> "SearchSpace":
         """Load a built-in YAML search space by name."""
         import ezautoml.resources.spaces as spaces
+
         # Using importlib.resources.files() to read the YAML file from package resources
         with importlib.resources.files(spaces).joinpath(f"{name}.yaml").open("r") as f:
             data = yaml.safe_load(f)
@@ -120,22 +135,33 @@ class SearchSpace:
         # Parse components from the YAML data
         models = [Component.from_dict(d) for d in data["models"]]
         data_procs = [Component.from_dict(d) for d in data.get("data_processors", [])]
-        feat_procs = [Component.from_dict(d) for d in data.get("feature_processors", [])]
+        feat_procs = [
+            Component.from_dict(d) for d in data.get("feature_processors", [])
+        ]
         task = TaskType[data["task"].upper()]
 
         # Return the SearchSpace instance
         return SearchSpace(models, data_procs, feat_procs, task)
 
     def __str__(self):
-        models_str = ', '.join([str(model) for model in self.models])
-        data_processors_str = ', '.join([str(dp) for dp in self.data_processors]) if self.data_processors else "None"
-        feature_processors_str = ', '.join([str(fp) for fp in self.feature_processors]) if self.feature_processors else "None"
+        models_str = ", ".join([str(model) for model in self.models])
+        data_processors_str = (
+            ", ".join([str(dp) for dp in self.data_processors])
+            if self.data_processors
+            else "None"
+        )
+        feature_processors_str = (
+            ", ".join([str(fp) for fp in self.feature_processors])
+            if self.feature_processors
+            else "None"
+        )
         return (
             f"SearchSpace(task={self.task.name}, "
             f"models=[{models_str}], "
             f"data_processors=[{data_processors_str}], "
             f"feature_processors=[{feature_processors_str}])"
         )
+
 
 if __name__ == "__main__":
     # Load a built-in search space by name

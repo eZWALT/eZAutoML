@@ -6,6 +6,7 @@ from loguru import logger
 from typing import List, Optional, Union
 import time
 
+
 class RandomSearchOptimizer(Optimizer):
     """Random search strategy for CASH (model selection + hyperparameter tuning)."""
 
@@ -81,23 +82,29 @@ if __name__ == "__main__":
     from ezautoml.evaluation.task import TaskType
     from ezautoml.results.trial import Trial
     from ezautoml.results.history import History
-    
+
     from ezautoml.data.loader import DatasetLoader
 
     # Initialize DatasetLoader
-    loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
-    datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])  # Load datasets
+    loader = DatasetLoader(
+        local_path="../../data", metadata_path="../../data/metadata.json"
+    )
+    datasets = loader.load_selected_datasets(
+        groups=["local", "builtin", "torchvision"]
+    )  # Load datasets
 
     # Select a dataset (for example, load the breast cancer dataset)
     X, y = datasets["breast_cancer"]  # Adjust depending on the dataset you want to use
 
     # Split into train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
 
     # Define metrics and evaluator
     metrics = MetricSet(
         {"accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False)},
-        primary_metric_name="accuracy"
+        primary_metric_name="accuracy",
     )
     evaluator = Evaluator(metric_set=metrics)
 
@@ -137,16 +144,11 @@ if __name__ == "__main__":
 
     # Define search space and optimizer
     search_space = SearchSpace(
-        models=[rf_component, dt_component, lr_component],
-        task="classification"
+        models=[rf_component, dt_component, lr_component], task="classification"
     )
 
     optimizer = RandomSearchOptimizer(
-        space=search_space,
-        metrics=metrics,
-        max_trials=100,
-        max_time=3600,
-        seed=42
+        space=search_space, metrics=metrics, max_trials=100, max_time=3600, seed=42
     )
 
     # Initialize trial history
@@ -179,7 +181,7 @@ if __name__ == "__main__":
             model_name=trial_config.model.name,
             optimizer_name="RandomSearch",
             evaluation=evaluation,
-            duration=duration
+            duration=duration,
         )
         history.add(trial)
 

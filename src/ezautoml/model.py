@@ -15,11 +15,14 @@ from sklearn.metrics import accuracy_score
 
 import contextlib
 import os
+
+
 @contextlib.contextmanager
 def suppress_output():
-    with open(os.devnull, 'w') as fnull:
+    with open(os.devnull, "w") as fnull:
         with contextlib.redirect_stdout(fnull), contextlib.redirect_stderr(fnull):
             yield
+
 
 class eZAutoML:
     def __init__(
@@ -31,7 +34,7 @@ class eZAutoML:
         max_trials=100,
         max_time=3600,
         seed=42,
-        verbose=True
+        verbose=True,
     ):
         self.verbose = verbose
         self.search_space = search_space
@@ -40,8 +43,8 @@ class eZAutoML:
         self.max_trials = max_trials
         self.max_time = max_time
         self.seed = seed
-        self.task = task 
-        
+        self.task = task
+
         assert self.task.value == search_space.task.value
 
         self.history = History()
@@ -54,7 +57,9 @@ class eZAutoML:
     def fit(self, X, y):
         """Run optimization using Random Search."""
         if self.verbose:
-            self.console.print("[bold green]Starting optimization...", style="bold green")
+            self.console.print(
+                "[bold green]Starting optimization...", style="bold green"
+            )
 
         # Initialize the optimizer
         optimizer = self.optimizer_cls(
@@ -62,14 +67,14 @@ class eZAutoML:
             metrics=self.metrics,
             max_trials=self.max_trials,
             max_time=self.max_time,
-            seed=self.seed
+            seed=self.seed,
         )
 
         start_time = time.time()
         primary_metric = self.metrics.primary
         primary_name = primary_metric.name
         primary_fn = primary_metric.fn
-        best_score = float('inf') if primary_metric.minimize else float('-inf')
+        best_score = float("inf") if primary_metric.minimize else float("-inf")
         best_model_config = None
 
         # Optimization loop
@@ -105,7 +110,7 @@ class eZAutoML:
                 model_name=config.model.name,
                 optimizer_name=optimizer.__class__.__name__,
                 evaluation=evaluation,
-                duration=duration
+                duration=duration,
             )
             self.history.add(trial)
 
@@ -114,11 +119,13 @@ class eZAutoML:
             if self.verbose:
                 self.console.print(
                     f"[Trial {len(self.history.trials)}] {primary_name}={score:.4f} in {duration:.2f}s - {model_name}",
-                    style="dim"
+                    style="dim",
                 )
 
             # Keep best based on minimize flag
-            if (primary_metric.minimize and score < best_score) or (not primary_metric.minimize and score > best_score):
+            if (primary_metric.minimize and score < best_score) or (
+                not primary_metric.minimize and score > best_score
+            ):
                 best_score = score
                 best_model_config = config
 
@@ -136,12 +143,13 @@ class eZAutoML:
                 )
 
             self.best_config = best_model_config
-            self.best_model = best_model_config.model.instantiate(best_model_config.model_params)
+            self.best_model = best_model_config.model.instantiate(
+                best_model_config.model_params
+            )
             self.best_model.fit(X, y)
         else:
             if self.verbose:
                 self.console.print("[bold red]No valid pipeline found.[/bold red]")
-
 
     def predict(self, X):
         """Make predictions using the fitted model."""
@@ -162,19 +170,26 @@ class eZAutoML:
             raise RuntimeError("Model not fitted. Call fit() first.")
 
         # Make predictions and evaluate
-        predictions = self.predict(X_test)        
+        predictions = self.predict(X_test)
         primary_name = self.metrics.primary_metric_name
-        test_score = self.metrics.primary.fn (y_test, predictions, **self.metrics.primary.default_kwargs)
-          
+        test_score = self.metrics.primary.fn(
+            y_test, predictions, **self.metrics.primary.default_kwargs
+        )
+
         if self.verbose:
-            self.console.print(f"[bold blue]Test {primary_name}:[/bold blue] {test_score:.4f}")
+            self.console.print(
+                f"[bold blue]Test {primary_name}:[/bold blue] {test_score:.4f}"
+            )
         return test_score
 
     def summary(self, k=5):
         minimize_map = {self.metrics.primary.name: self.metrics.primary.minimize}
-        return self.history.summary(k=k, metrics=[self.metrics.primary.name], minimize_map=minimize_map)
-    
+        return self.history.summary(
+            k=k, metrics=[self.metrics.primary.name], minimize_map=minimize_map
+        )
+
     # TODO: Add Serialization method for models for a big save function (model + output results)
+
 
 # --- Main Function ---
 import time
@@ -192,21 +207,23 @@ from ezautoml.evaluation.metric import Metric, MetricSet
 from ezautoml.optimization.optimizers.random_search import RandomSearchOptimizer
 from ezautoml.data.loader import DatasetLoader
 
+
 def main():
-   # --- Load dataset ---
+    # --- Load dataset ---
     loader = DatasetLoader(
-        local_path="../../data", 
-        metadata_path="../../data/metadata.json"
+        local_path="../../data", metadata_path="../../data/metadata.json"
     )
     datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])
     X, y = datasets["dota"]  # Replace with any available dataset
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
     # Define metrics and evaluator
     metrics = MetricSet(
         {"accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False)},
-        primary_metric_name="accuracy"
+        primary_metric_name="accuracy",
     )
-    
+
     search_space = SearchSpace.from_yaml("classification_space.yaml")
 
     # Initialize eZAutoML
@@ -216,7 +233,7 @@ def main():
         metrics=metrics,
         max_trials=5,
         max_time=600,  # 10 minutes
-        seed=42
+        seed=42,
     )
 
     # Fit model
@@ -225,15 +242,14 @@ def main():
     test_accuracy = ezautoml.test(X_test, y_test)
     # Show best trial summary
     ezautoml.summary(k=5)
-    
-    
+
+
 def main2():
     from sklearn.metrics import mean_squared_error, r2_score
 
     # --- Load dataset ---
     loader = DatasetLoader(
-        local_path="../../data", 
-        metadata_path="../../data/metadata.json"
+        local_path="../../data", metadata_path="../../data/metadata.json"
     )
     datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])
 
@@ -241,15 +257,17 @@ def main2():
         raise ValueError("Dataset 'wine.csv' not found in loaded datasets.")
 
     X, y = datasets["wine.csv"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
 
     # Define regression metrics
     metrics = MetricSet(
         {
             "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
-            "r2": Metric(name="r2", fn=r2_score, minimize=False)
+            "r2": Metric(name="r2", fn=r2_score, minimize=False),
         },
-        primary_metric_name="mse"
+        primary_metric_name="mse",
     )
 
     # Load regression search space
@@ -262,7 +280,7 @@ def main2():
         metrics=metrics,
         max_trials=100,
         max_time=600,
-        seed=42
+        seed=42,
     )
 
     # Fit, test, summarize

@@ -17,9 +17,9 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 from skimage.transform import resize
 
-import torch 
+import torch
 from torch.utils import data
-import torch.nn as nn 
+import torch.nn as nn
 import torch.nn.functional as F
 
 from torchvision.datasets import MNIST, FashionMNIST, CIFAR10
@@ -57,14 +57,16 @@ from medmnist import (
 
 
 class DatasetLoader:
-    def __init__(self, local_path: str = "data", metadata_path: str = "./data/metadata.json"):
+    def __init__(
+        self, local_path: str = "data", metadata_path: str = "./data/metadata.json"
+    ):
         self.local_path = local_path
         self.dataset_groups = {
             "builtin": ["breast_cancer"],
             "local": None,  # Discovered dynamically
             "medmnist": [
                 "pathmnist",
-                #"chestmnist",
+                # "chestmnist",
                 "octmnist",
                 "pneumoniamnist",
                 "breastmnist",
@@ -84,25 +86,25 @@ class DatasetLoader:
             ],
         }
         self.no_scale_datasets = {
-        "mnist",
-        "fashion_mnist",
-        "cifar10",
-        "pathmnist",
-        "chestmnist",
-        "octmnist",
-        "pneumoniamnist",
-        "breastmnist",
-        "bloodmnist",
-        "tissuemnist",
-        "organamnist",
-        "organcmnist",
-        "organsmnist",
-        "organmnist3d",
-        "nodulmnist3d",
-        "adrenalmnist3d",
-        "fracturemnist3d",
-        "vesselmnist3d",
-        "synapsemnist3d",
+            "mnist",
+            "fashion_mnist",
+            "cifar10",
+            "pathmnist",
+            "chestmnist",
+            "octmnist",
+            "pneumoniamnist",
+            "breastmnist",
+            "bloodmnist",
+            "tissuemnist",
+            "organamnist",
+            "organcmnist",
+            "organsmnist",
+            "organmnist3d",
+            "nodulmnist3d",
+            "adrenalmnist3d",
+            "fracturemnist3d",
+            "vesselmnist3d",
+            "synapsemnist3d",
         }
         self.datasets = {}  # Populated via method
         logger.info("DatasetLoader initialized.")
@@ -116,18 +118,19 @@ class DatasetLoader:
 
             # Detect delimiter: semicolon or comma
             delimiter = ";" if sample.count(";") > sample.count(",") else ","
-            
+
             # Detect decimal: comma or dot
             decimal = "," if "," in sample and "." not in sample else "."
 
             # Read the CSV while ensuring that no column is treated as the index
-            df = pd.read_csv(file, delimiter=delimiter, decimal=decimal, index_col=False)
-            
+            df = pd.read_csv(
+                file, delimiter=delimiter, decimal=decimal, index_col=False
+            )
+
             return df
         except Exception as e:
             logger.error(f"Error reading {file}: {e}")
             return None
-
 
     def _load_local_datasets(self):
         datasets = {}
@@ -147,7 +150,9 @@ class DatasetLoader:
                     raise EnvironmentError("Could not read CSV.")
 
                 if filename not in target_columns:
-                    raise ValueError(f"Target column for {filename} not found in metadata!")
+                    raise ValueError(
+                        f"Target column for {filename} not found in metadata!"
+                    )
 
                 target_col = target_columns[filename]
                 X = df.drop(columns=[target_col])
@@ -155,7 +160,7 @@ class DatasetLoader:
 
                 X, y = self._clean_and_preprocess_local(X, y)
                 datasets[filename] = (X, y)
-                
+
             except Exception as e:
                 logger.warning(f"Skipping {file}: {repr(e)}")
 
@@ -164,23 +169,24 @@ class DatasetLoader:
 
     def _convert_categoricals(self, X, y):
         X = X.copy()
-        
+
         # Convert categorical features in X
         for col in X.select_dtypes(include="object").columns:
             X[col] = LabelEncoder().fit_transform(X[col])
-        
+
         # If y is numeric (not categorical), encode based on unique values
         if np.issubdtype(y.dtype, np.number):
             # Use np.unique to get the unique values and map them to a range starting from 0
             unique_values = np.unique(y)
-            y = np.searchsorted(unique_values, y)  # This maps the original values to new ones
-            
+            y = np.searchsorted(
+                unique_values, y
+            )  # This maps the original values to new ones
+
         else:
             # For categorical y, use LabelEncoder
             y = LabelEncoder().fit_transform(y)
-            
-        return X, y
 
+        return X, y
 
     def _clean_and_preprocess_local(self, X, y):
         for col in X.columns:
@@ -206,9 +212,9 @@ class DatasetLoader:
             if X[col].isnull().any():
                 imputer = SimpleImputer(strategy="most_frequent")
                 X[col] = imputer.fit_transform(X[[col]]).ravel()
-                
+
         return self._convert_categoricals(X, y)
-    
+
     def _load_builtin_datasets(self):
         logger.info("Loading built-in datasets...")
         return {
@@ -262,14 +268,26 @@ class DatasetLoader:
             dataset = dataset_cls(root="data", split="train", download=True)
 
             # Check if `targets` or `labels` is available
-            if hasattr(dataset, 'targets'):
-                y = dataset.targets.numpy() if isinstance(dataset.targets, torch.Tensor) else np.array(dataset.targets)
-            elif hasattr(dataset, 'labels'):
-                y = dataset.labels.numpy() if isinstance(dataset.labels, torch.Tensor) else np.array(dataset.labels)
+            if hasattr(dataset, "targets"):
+                y = (
+                    dataset.targets.numpy()
+                    if isinstance(dataset.targets, torch.Tensor)
+                    else np.array(dataset.targets)
+                )
+            elif hasattr(dataset, "labels"):
+                y = (
+                    dataset.labels.numpy()
+                    if isinstance(dataset.labels, torch.Tensor)
+                    else np.array(dataset.labels)
+                )
             else:
-                raise AttributeError(f"Dataset '{name}' has no 'targets' or 'labels' attribute.")
+                raise AttributeError(
+                    f"Dataset '{name}' has no 'targets' or 'labels' attribute."
+                )
 
-            X = torch.stack([transforms.ToTensor()(img[0]).flatten() for img in dataset]).numpy()
+            X = torch.stack(
+                [transforms.ToTensor()(img[0]).flatten() for img in dataset]
+            ).numpy()
 
             return X, y
 
@@ -363,7 +381,9 @@ class DatasetLoader:
         # Do not scale image-based datasets :)
         for name, (X, y) in selected.items():
             try:
-                processed[name] = self._preprocess_data(X, y, scale=(name not in self.no_scale_datasets))
+                processed[name] = self._preprocess_data(
+                    X, y, scale=(name not in self.no_scale_datasets)
+                )
             except Exception as e:
                 logger.error(f"Error preprocessing {name}: {e}")
 
@@ -373,11 +393,11 @@ class DatasetLoader:
 
     def get_datasets(self):
         return self.datasets
-    
+
     def load_user_datasets(self, file_paths: list[str], metadata: dict[str, str]):
         """
         Load user-provided datasets from CSV files with minimal tabular ML treatment.
-        
+
         :param file_paths: list of CSV file paths
         :param metadata: dict of filename -> target_column
         :return: dict of {filename: (X, y)}
@@ -401,13 +421,14 @@ class DatasetLoader:
                 X, y = self._clean_and_preprocess_local(X, y)
                 user_datasets[filename] = (X, y)
 
-                logger.success(f"Loaded user dataset: {filename} | X: {X.shape} | y: {y.shape}")
+                logger.success(
+                    f"Loaded user dataset: {filename} | X: {X.shape} | y: {y.shape}"
+                )
             except Exception as e:
                 logger.warning(f"Skipping {filename}: {repr(e)}")
 
         self.datasets.update(user_datasets)
         return user_datasets
-
 
 
 def test_main_loading():
@@ -416,11 +437,11 @@ def test_main_loading():
     # Example usage:
     datasets = loader.load_selected_datasets(
         groups=[
-         #"builtin",
-         #"medmnist3d",
-         #"medmnist",
-         "local",
-         #"torchvision"
+            # "builtin",
+            # "medmnist3d",
+            # "medmnist",
+            "local",
+            # "torchvision"
         ]
     )
 
@@ -431,6 +452,7 @@ def test_main_loading():
         logger.info(f"  ➤ Y type: {type(Y)}")
         logger.info(f"  ➤ Y dtype: {Y.dtype}")
 
+
 def test_user_custom_data():
     user_files = ["/home/wtroiani/lol1.csv", "/home/wtroiani/lol2.csv"]
     user_metadata = {
@@ -438,7 +460,9 @@ def test_user_custom_data():
         "lol2.csv": "smoking",
     }
 
-    loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
+    loader = DatasetLoader(
+        local_path="../../data", metadata_path="../../data/metadata.json"
+    )
     user_datasets = loader.load_user_datasets(user_files, user_metadata)
 
     for name, (X, y) in user_datasets.items():
@@ -447,4 +471,3 @@ def test_user_custom_data():
 
 if __name__ == "__main__":
     test_user_custom_data()
-    

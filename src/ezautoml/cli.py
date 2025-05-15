@@ -18,7 +18,9 @@ from ezautoml.model import eZAutoML
 from ezautoml.__version__ import __version__
 
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning)
+
 
 def parse_args():
     """
@@ -27,34 +29,73 @@ def parse_args():
     parser = argparse.ArgumentParser(
         prog="ezautoml",
         description="A Democratized, lightweight and modern framework for Python Automated Machine Learning.",
-        epilog="For more info, visit: https://github.com/eZWALT/eZAutoML"
+        epilog="For more info, visit: https://github.com/eZWALT/eZAutoML",
     )
 
     # Required arguments
-    parser.add_argument("--dataset", type=str, required=True, help="Path to the dataset file (CSV)")
-    parser.add_argument("--target", type=str, required=True, help="The target column name for prediction")
     parser.add_argument(
-        "--task", 
-        choices=["classification", "regression", "c", "r"], 
-        required=True, 
-        help="Task type: 'classification', 'regression', 'c' for classification, or 'r' for regression"
+        "--dataset", type=str, required=True, help="Path to the dataset file (CSV)"
+    )
+    parser.add_argument(
+        "--target",
+        type=str,
+        required=True,
+        help="The target column name for prediction",
+    )
+    parser.add_argument(
+        "--task",
+        choices=["classification", "regression", "c", "r"],
+        required=True,
+        help="Task type: 'classification', 'regression', 'c' for classification, or 'r' for regression",
     )
     # Optional arguments
-    parser.add_argument("--models", type=str, default="lgbm,xgb,rf", help="Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!")
-    parser.add_argument("--search", choices=["random", "optuna"], default="random", help="Optimization algorithm to perform")
-    parser.add_argument("--trials", type=int, default=10, help="Maximum number of trials inside an optimization algorithm")
-    parser.add_argument("--output", type=str, default=".", help="Directory to save the output models/results")
-    parser.add_argument("--save", action="store_true", help="Directory to save the output models/results")
-    parser.add_argument("--verbose", action="store_true", help="Increase logging verbosity")
-    parser.add_argument("--version", action="version", version=f"eZAutoML {__version__}", help="Show the current version")
+    parser.add_argument(
+        "--models",
+        type=str,
+        default="lgbm,xgb,rf",
+        help="Comma-separated list of models to use (e.g., lr,rf,xgb). Use initials!",
+    )
+    parser.add_argument(
+        "--search",
+        choices=["random", "optuna"],
+        default="random",
+        help="Optimization algorithm to perform",
+    )
+    parser.add_argument(
+        "--trials",
+        type=int,
+        default=10,
+        help="Maximum number of trials inside an optimization algorithm",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=".",
+        help="Directory to save the output models/results",
+    )
+    parser.add_argument(
+        "--save",
+        action="store_true",
+        help="Directory to save the output models/results",
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Increase logging verbosity"
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"eZAutoML {__version__}",
+        help="Show the current version",
+    )
 
     return parser.parse_args()
+
 
 def sanitize_feature_names(df):
     """
     Sanitizes column names by replacing non-alphanumeric characters with underscores.
     """
-    sanitized_columns = [re.sub(r'[^0-9a-zA-Z_]', '_', col) for col in df.columns]
+    sanitized_columns = [re.sub(r"[^0-9a-zA-Z_]", "_", col) for col in df.columns]
     df.columns = sanitized_columns
     return df
 
@@ -75,6 +116,7 @@ def load_and_prepare_data(dataset_path, target_column, task_type):
 
     return X, y
 
+
 def get_task_type_and_metrics(task):
     """
     Returns the appropriate TaskType and metrics based on the task (classification or regression).
@@ -84,7 +126,7 @@ def get_task_type_and_metrics(task):
         "c": "classification",
         "r": "regression",
         "classification": "classification",
-        "regression": "regression"
+        "regression": "regression",
     }
 
     task = task_mapping.get(task, task)  # Get the corresponding full task name
@@ -94,21 +136,27 @@ def get_task_type_and_metrics(task):
         metrics = MetricSet(
             {
                 "accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False),
-                "f1_score": Metric(name="f1_score", fn=f1_score, minimize=False, default_kwargs={"average": "macro"})
+                "f1_score": Metric(
+                    name="f1_score",
+                    fn=f1_score,
+                    minimize=False,
+                    default_kwargs={"average": "macro"},
+                ),
             },
-            primary_metric_name="f1_score"
+            primary_metric_name="f1_score",
         )
     elif task == "regression":
         task_type = TaskType.REGRESSION
         metrics = MetricSet(
             {
                 "mse": Metric(name="mse", fn=mean_squared_error, minimize=True),
-                "r2": Metric(name="r2", fn=r2_score, minimize=False)
+                "r2": Metric(name="r2", fn=r2_score, minimize=False),
             },
-            primary_metric_name="mse"
+            primary_metric_name="mse",
         )
 
     return task_type, metrics
+
 
 def select_optimizer(search_strategy):
     """
@@ -117,17 +165,23 @@ def select_optimizer(search_strategy):
     """
     if search_strategy == "optuna":
         log_wip_message()  # Log the WIP message
-        raise SystemExit("Optuna optimizer is currently a Work In Progress. The process will be terminated.")  # Terminate the process
+        raise SystemExit(
+            "Optuna optimizer is currently a Work In Progress. The process will be terminated."
+        )  # Terminate the process
     else:
         optimizer_cls = RandomSearchOptimizer
 
     return optimizer_cls
 
+
 def log_wip_message():
     """
     Logs a Work In Progress (WIP) message for the Optuna optimizer.
     """
-    logger.warning("Optuna optimizer is WIP (Work in Progress). Please proceed with caution.")
+    logger.warning(
+        "Optuna optimizer is WIP (Work in Progress). Please proceed with caution."
+    )
+
 
 def save_results(ezautoml, output_dir):
     """
@@ -138,6 +192,7 @@ def save_results(ezautoml, output_dir):
         ezautoml.history.to_json(os.path.join(output_dir, "history.json"))
         ezautoml.history.to_csv(os.path.join(output_dir, "history_summary.csv"))
 
+
 def main():
     args = parse_args()
 
@@ -145,7 +200,7 @@ def main():
         "c": "classification",
         "r": "regression",
         "classification": "classification",
-        "regression": "regression"
+        "regression": "regression",
     }
 
     task = task_mapping.get(args.task, args.task)
@@ -155,7 +210,9 @@ def main():
     if X is None or y is None:
         return
 
-    search_space_file = "classification_space" if task == "classification" else "regression_space"
+    search_space_file = (
+        "classification_space" if task == "classification" else "regression_space"
+    )
     search_space = SearchSpace.from_builtin(search_space_file)
 
     optimizer_cls = select_optimizer(args.search)
@@ -166,7 +223,7 @@ def main():
         metrics=metrics,
         optimizer_cls=optimizer_cls,
         max_trials=args.trials,
-        verbose=args.verbose
+        verbose=args.verbose,
     )
 
     ezautoml.fit(X, y)
@@ -181,6 +238,7 @@ def main():
     # Save results to the output directory
     if args.save:
         save_results(ezautoml, args.output)
+
 
 if __name__ == "__main__":
     main()

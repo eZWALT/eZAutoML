@@ -7,7 +7,7 @@ from loguru import logger
 
 
 from ezautoml.evaluation.task import TaskType
-from ezautoml.space.space import * 
+from ezautoml.space.space import *
 from ezautoml.space.hyperparam import Hyperparam
 from ezautoml.registry import constructor_registry
 
@@ -24,6 +24,7 @@ from ezautoml.registry import constructor_registry
 # To avoid doing subclasses for the moment
 # TODO: use anything other than MODEL_SELECTION
 
+
 # These are the common 5 steps to automate in AutoML
 class Tag(Enum):
     MODEL_SELECTION = "model_selection"
@@ -31,7 +32,8 @@ class Tag(Enum):
     FEATURE_PROCESSING = "feature_processing"
     DATA_PROCESSING = "data_processing"
     OPTIMIZATION_ALGORITHM_SELECTION = "optimization_algorithm_selection"
-    
+
+
 class Component:
     def __init__(
         self,
@@ -40,15 +42,17 @@ class Component:
         tag: Tag,
         hyperparams: List[Hyperparam] = None,
         task: TaskType = TaskType.BOTH,
-        validate_interface: bool = True
+        validate_interface: bool = True,
     ):
         if not callable(constructor):
             raise ValueError(f"Constructor must be callable, got {constructor}")
 
         if not constructor_registry.has(constructor.__name__):
             logger.info(constructor_registry)
-            raise ValueError(f"Constructor '{constructor.__name__}' is not registered in constructor_registry.")
-        
+            raise ValueError(
+                f"Constructor '{constructor.__name__}' is not registered in constructor_registry."
+            )
+
         self.name = name
         self.constructor = constructor
         self.hyperparams = hyperparams or []
@@ -64,12 +68,18 @@ class Component:
 
         if self.tag == Tag.MODEL_SELECTION:
             required_methods = ["fit", "predict"]  # optionally "predict_proba"
-        elif self.tag in [Tag.DATA_PROCESSING, Tag.FEATURE_PROCESSING, Tag.FEATURE_ENGINEERING]:
+        elif self.tag in [
+            Tag.DATA_PROCESSING,
+            Tag.FEATURE_PROCESSING,
+            Tag.FEATURE_ENGINEERING,
+        ]:
             required_methods = ["fit", "transform"]
         elif self.tag == Tag.OPTIMIZATION_ALGORITHM_SELECTION:
             required_methods = []
 
-        missing = [method for method in required_methods if not hasattr(instance, method)]
+        missing = [
+            method for method in required_methods if not hasattr(instance, method)
+        ]
         if missing:
             raise TypeError(
                 f"Component '{self.name}' of tag '{self.tag.name}' is missing required methods: {missing}"
@@ -100,7 +110,13 @@ class Component:
         hyperparams = [Hyperparam.from_dict(hp) for hp in data.get("hyperparams", [])]
         task = TaskType(data["task"])
         tag = Tag(data.get("tag", Tag.MODEL_SELECTION.value))
-        sus = cls(data["name"], constructor=constructor,tag=tag, hyperparams=hyperparams, task=task)
+        sus = cls(
+            data["name"],
+            constructor=constructor,
+            tag=tag,
+            hyperparams=hyperparams,
+            task=task,
+        )
         return sus
 
     def __str__(self):
@@ -112,7 +128,8 @@ class Component:
             f"constructor='{self.constructor.__name__}', "
             f"hyperparams=[{', '.join(hyperparam_strs)}])"
         )
-        
+
+
 if __name__ == "__main__":
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.linear_model import LogisticRegression
@@ -122,23 +139,40 @@ if __name__ == "__main__":
     # Define hyperparameters for RandomForest
     rf_params = [
         Hyperparam("n_estimators", Integer(50, 150)),
-        Hyperparam("max_depth", Integer(5, 20))
+        Hyperparam("max_depth", Integer(5, 20)),
     ]
 
     # Define hyperparameters for LogisticRegression
     lr_params = [
         Hyperparam("C", Real(0.01, 10)),
-        Hyperparam("penalty", Categorical(["l2", "none"]))
+        Hyperparam("penalty", Categorical(["l2", "none"])),
     ]
 
     # Model components
-    rf_component = Component("RandomForest", tag=Tag.MODEL_SELECTION, constructor=RandomForestClassifier,hyperparams=rf_params)
-    lr_component = Component("LogisticRegression",tag=Tag.MODEL_SELECTION, constructor=LogisticRegression, hyperparams=lr_params)
+    rf_component = Component(
+        "RandomForest",
+        tag=Tag.MODEL_SELECTION,
+        constructor=RandomForestClassifier,
+        hyperparams=rf_params,
+    )
+    lr_component = Component(
+        "LogisticRegression",
+        tag=Tag.MODEL_SELECTION,
+        constructor=LogisticRegression,
+        hyperparams=lr_params,
+    )
 
     # Feature processors
-    pca_component = Component("PCA",tag=Tag.FEATURE_PROCESSING, constructor=PCA, hyperparams=[Hyperparam("n_components", Real(0.1, 0.95))])
+    pca_component = Component(
+        "PCA",
+        tag=Tag.FEATURE_PROCESSING,
+        constructor=PCA,
+        hyperparams=[Hyperparam("n_components", Real(0.1, 0.95))],
+    )
     # Data processors
-    scaler_component = Component("StandardScaler", tag=Tag.DATA_PROCESSING, constructor=StandardScaler)
+    scaler_component = Component(
+        "StandardScaler", tag=Tag.DATA_PROCESSING, constructor=StandardScaler
+    )
 
     # Manually simulate a SearchSpace sampling
     all_models = [rf_component, lr_component]

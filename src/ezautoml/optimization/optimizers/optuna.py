@@ -12,9 +12,6 @@ from typing import Optional, Union, List
 import numpy as np
 
 
-
-
-
 class OptunaOptimizer(Optimizer):
     """Optuna optimization strategy for CASH (model selection + hyperparameter tuning)."""
 
@@ -60,10 +57,15 @@ class OptunaOptimizer(Optimizer):
 
         # Extract the result from the report, assuming `result` contains an `Evaluation` object
         if report.result:
-            score = report.result.results["accuracy"]  # Assuming 'accuracy' is one of the keys in the results
+            score = report.result.results[
+                "accuracy"
+            ]  # Assuming 'accuracy' is one of the keys in the results
 
             # Check if any trials are completed
-            if len(self.study.trials) == 0 or all(trial.state != optuna.trial.TrialState.COMPLETE for trial in self.study.trials):
+            if len(self.study.trials) == 0 or all(
+                trial.state != optuna.trial.TrialState.COMPLETE
+                for trial in self.study.trials
+            ):
                 # Add the first trial (initial trial) if no trials are completed yet
                 trial = optuna.trial.FrozenTrial(
                     number=self.trial_count,
@@ -77,7 +79,9 @@ class OptunaOptimizer(Optimizer):
             else:
                 # Check if the best trial has been completed
                 if self.study.best_trial.state == optuna.trial.TrialState.COMPLETE:
-                    comparison = self.metrics.primary.is_improvement(self.study.best_value, score)
+                    comparison = self.metrics.primary.is_improvement(
+                        self.study.best_value, score
+                    )
 
                     # If new trial is better, add it
                     if comparison == Comparison.BETTER:
@@ -93,7 +97,9 @@ class OptunaOptimizer(Optimizer):
                             logger.info(f"New best trial found with score {score}.")
                     else:
                         if self.verbose:
-                            logger.info(f"Trial did not improve. Current best: {self.study.best_value}")
+                            logger.info(
+                                f"Trial did not improve. Current best: {self.study.best_value}"
+                            )
                 else:
                     # If no trials are fully completed, just add the current trial
                     trial = optuna.trial.FrozenTrial(
@@ -108,7 +114,6 @@ class OptunaOptimizer(Optimizer):
                         logger.info(f"First completed trial added with score {score}.")
 
             self.trial_count += 1
-
 
     def ask(self, n: int = 1) -> Union[SearchPoint, List[SearchPoint]]:
         """Sample new candidate configurations from the search space."""
@@ -130,7 +135,9 @@ class OptunaOptimizer(Optimizer):
             # TODO APPLY DATA PROCESSORS
 
             # Split the data into training and validation sets
-            X_train, X_val, y_train, y_val = train_test_split(self.X, self.y, test_size=0.3, random_state=self.seed)
+            X_train, X_val, y_train, y_val = train_test_split(
+                self.X, self.y, test_size=0.3, random_state=self.seed
+            )
 
             # Train the model
             model.fit(X_train, y_train)
@@ -146,7 +153,9 @@ class OptunaOptimizer(Optimizer):
             trials.append(config)
 
             if self.verbose:
-                logger.info(f"[ASK] Sampled configuration: {config} - Evaluation: {evaluation_score}")
+                logger.info(
+                    f"[ASK] Sampled configuration: {config} - Evaluation: {evaluation_score}"
+                )
 
         return trials if n > 1 else trials[0]
 
@@ -166,7 +175,9 @@ class OptunaOptimizer(Optimizer):
         model = config.model.instantiate(config.model_params)
 
         # Split the data
-        X_train, X_val, y_train, y_val = train_test_split(self.X, self.y, test_size=0.3, random_state=self.seed)
+        X_train, X_val, y_train, y_val = train_test_split(
+            self.X, self.y, test_size=0.3, random_state=self.seed
+        )
 
         # Train the model
         model.fit(X_train, y_train)
@@ -180,6 +191,7 @@ class OptunaOptimizer(Optimizer):
     def optimize(self):
         """Run the optimization using the Optuna study."""
         self.study.optimize(self.objective, n_trials=self.max_trials)
+
 
 if __name__ == "__main__":
     import time
@@ -201,23 +213,29 @@ if __name__ == "__main__":
     from ezautoml.evaluation.task import TaskType
     from ezautoml.results.trial import Trial
     from ezautoml.results.history import History
-    
+
     from ezautoml.data.loader import DatasetLoader
 
     # 1. Initialize DatasetLoader
-    loader = DatasetLoader(local_path="../../data", metadata_path="../../data/metadata.json")
-    datasets = loader.load_selected_datasets(groups=["local", "builtin", "torchvision"])  # Load datasets
+    loader = DatasetLoader(
+        local_path="../../data", metadata_path="../../data/metadata.json"
+    )
+    datasets = loader.load_selected_datasets(
+        groups=["local", "builtin", "torchvision"]
+    )  # Load datasets
 
     # 2. Select a dataset (e.g., breast cancer dataset)
     X, y = datasets["breast_cancer"]  # Adjust depending on the dataset you want to use
 
     # 3. Split the dataset into train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
 
     # 4. Define metrics and evaluator
     metrics = MetricSet(
         {"accuracy": Metric(name="accuracy", fn=accuracy_score, minimize=False)},
-        primary_metric_name="accuracy"
+        primary_metric_name="accuracy",
     )
     evaluator = Evaluator(metric_set=metrics)
 
@@ -257,8 +275,7 @@ if __name__ == "__main__":
 
     # 7. Define search space and optimizer
     search_space = SearchSpace(
-        models=[rf_component, dt_component, lr_component],
-        task="classification"
+        models=[rf_component, dt_component, lr_component], task="classification"
     )
 
     optimizer = OptunaOptimizer(
@@ -269,7 +286,7 @@ if __name__ == "__main__":
         max_trials=10,
         max_time=3600,
         seed=42,
-        verbose=True
+        verbose=True,
     )
 
     # 8. Initialize trial history
@@ -302,7 +319,7 @@ if __name__ == "__main__":
             model_name=trial_config.model.name,
             optimizer_name="RandomSearch",
             evaluation=evaluation,
-            duration=duration
+            duration=duration,
         )
         history.add(trial)
 
